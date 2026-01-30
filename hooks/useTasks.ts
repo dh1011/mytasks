@@ -20,7 +20,7 @@ export function useTasks() {
             const dbConfig = await getDatabaseConfig();
             setConfig(dbConfig);
 
-            if (dbConfig) {
+            if (dbConfig && dbConfig.apiUrl && dbConfig.anonKey) {
                 const api = new ApiService(dbConfig);
                 const fetchedTasks = await api.fetchTasks();
                 setTasks(fetchedTasks);
@@ -29,17 +29,20 @@ export function useTasks() {
             }
         } catch (error) {
             console.error('Error loading data:', error);
-            // Optionally handle error state
+            setTasks([]);
         } finally {
             setIsLoading(false);
         }
     };
 
     const addTask = useCallback(async (title: string) => {
-        if (!config) return; // Should probably alert user
+        if (!config || !config.apiUrl || !config.anonKey) {
+            alert('Please configure database settings first');
+            return;
+        }
 
         const api = new ApiService(config);
-        setIsLoading(true); // Optimistic? Or show loader?
+        setIsLoading(true);
         try {
             const newTask = await api.createTask(title);
             setTasks((prev) => [newTask, ...prev]);
@@ -52,7 +55,7 @@ export function useTasks() {
     }, [config]);
 
     const toggleTask = useCallback(async (id: string) => {
-        if (!config) return;
+        if (!config || !config.apiUrl || !config.anonKey) return;
 
         // Optimistic update
         setTasks((prev) =>
@@ -80,7 +83,7 @@ export function useTasks() {
     }, [config, tasks]);
 
     const deleteTask = useCallback(async (id: string) => {
-        if (!config) return;
+        if (!config || !config.apiUrl || !config.anonKey) return;
 
         // Optimistic update
         const previousTasks = [...tasks];

@@ -17,5 +17,16 @@ services:
       timeout: 5s
       retries: 5
 
+  postgrest:
+    image: postgrest/postgrest:latest
+    ports:
+      - "3001:3000"
+    environment:
+      PGRST_DB_URI: postgres://mytasks:mytasks@postgres:5432/mytasks
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: web_anon
+    depends_on:
+      - postgres
+
 volumes:
   postgres_data:

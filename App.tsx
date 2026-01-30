@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Modal,
 } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTasks } from './hooks/useTasks';
 import { AddTaskForm } from './components/AddTaskForm';
 import { TaskList } from './components/TaskList';
@@ -20,7 +21,7 @@ import { theme } from './styles/theme';
 // Grid background component for the modernist aesthetic
 function GridBackground() {
   return (
-    <View style={styles.gridContainer} pointerEvents="none">
+    <View style={styles.gridContainer}>
       {/* Horizontal lines */}
       {Array.from({ length: 40 }).map((_, i) => (
         <View
@@ -82,65 +83,67 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
-      <GridBackground />
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        {/* Floating Card Container */}
-        <View style={styles.cardWrapper}>
-          <View style={styles.card}>
-            <View style={styles.header}>
-              <View style={styles.headerTop}>
-                <Text style={styles.date}>{dateString}</Text>
-                <TouchableOpacity
-                  style={styles.settingsButton}
-                  onPress={() => setShowSettings(true)}
-                >
-                  <Text style={styles.settingsIcon}>⚙</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.title}>MY TASKS</Text>
-              <View style={styles.statsContainer}>
-                <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{pendingCount}</Text>
-                  <Text style={styles.statLabel}>PENDING</Text>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+        <GridBackground />
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          {/* Floating Card Container */}
+          <View style={styles.cardWrapper}>
+            <View style={styles.card}>
+              <View style={styles.header}>
+                <View style={styles.headerTop}>
+                  <Text style={styles.date}>{dateString}</Text>
+                  <TouchableOpacity
+                    style={styles.settingsButton}
+                    onPress={() => setShowSettings(true)}
+                  >
+                    <Text style={styles.settingsIcon}>⚙</Text>
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.statDivider} />
-                <View style={styles.stat}>
-                  <Text style={[styles.statNumber, styles.statSuccess]}>
-                    {completedCount}
-                  </Text>
-                  <Text style={styles.statLabel}>DONE</Text>
+                <Text style={styles.title}>MY TASKS</Text>
+                <View style={styles.statsContainer}>
+                  <View style={styles.stat}>
+                    <Text style={styles.statNumber}>{pendingCount}</Text>
+                    <Text style={styles.statLabel}>PENDING</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.stat}>
+                    <Text style={[styles.statNumber, styles.statSuccess]}>
+                      {completedCount}
+                    </Text>
+                    <Text style={styles.statLabel}>DONE</Text>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            <AddTaskForm onAdd={addTask} />
+              <AddTaskForm onAdd={addTask} />
 
-            <View style={styles.listContainer}>
-              <TaskList
-                tasks={tasks}
-                onToggle={toggleTask}
-                onDelete={deleteTask}
-              />
+              <View style={styles.listContainer}>
+                <TaskList
+                  tasks={tasks}
+                  onToggle={toggleTask}
+                  onDelete={deleteTask}
+                />
+              </View>
             </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
 
-      {/* Settings Modal */}
-      <Modal
-        visible={showSettings}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowSettings(false)}
-      >
-        <DatabaseConfigScreen onClose={handleCloseSettings} />
-      </Modal>
-    </SafeAreaView>
+        {/* Settings Modal */}
+        <Modal
+          visible={showSettings}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowSettings(false)}
+        >
+          <DatabaseConfigScreen onClose={handleCloseSettings} />
+        </Modal>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -158,6 +161,7 @@ const styles = StyleSheet.create({
   gridContainer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
+    pointerEvents: 'none',
   },
   gridLine: {
     position: 'absolute',
@@ -186,10 +190,17 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.xl,
     overflow: 'hidden',
     // Soft, diffuse shadow for floating effect
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.4)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 24,
+      },
+    }),
     elevation: 8,
     borderWidth: 1,
     borderColor: theme.colors.border,

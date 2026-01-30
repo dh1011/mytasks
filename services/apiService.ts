@@ -9,15 +9,21 @@ export class ApiService {
         this.config = config;
         this.headers = {
             'apikey': config.anonKey,
-            'Authorization': `Bearer ${config.anonKey}`,
             'Content-Type': 'application/json',
             'Prefer': 'return=representation', // Ask PostgREST to return the created/updated record
         };
+
+        // Only add Authorization header if anonKey looks like a JWT token
+        // PostgREST without JWT secret will fail if Authorization header is present
+        if (config.anonKey && config.anonKey.includes('.')) {
+            this.headers['Authorization'] = `Bearer ${config.anonKey}`;
+        }
     }
 
     private getUrl(path: string): string {
         // Remove trailing slash from apiUrl if present, and leading slash from path
-        const baseUrl = this.config.apiUrl.replace(/\/$/, '');
+        const apiUrl = this.config.apiUrl || '';
+        const baseUrl = apiUrl.replace(/\/$/, '');
         const cleanPath = path.replace(/^\//, '');
         return `${baseUrl}/${cleanPath}`;
     }
