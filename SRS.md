@@ -49,3 +49,57 @@ The `Task` object must strictly adhere to the following schema:
 - [ ] **BE-REQ-009**: **Delete Idempotency**
     - **Input**: `taskId` (that was just deleted).
     - **Expected Outcome**: Operation completes successfully (or returns specific "already deleted" status), but does not throw a system error.
+
+## 3. Database Configuration
+
+### 3.1 Entity: DatabaseConfig
+The `DatabaseConfig` object defines connection parameters for a PostgreSQL-compatible database:
+- **`host`**: String. The database server hostname or IP address.
+- **`port`**: Number. The database server port (default: 5432).
+- **`database`**: String. The name of the database.
+- **`user`**: String. The database user for authentication.
+- **`password`**: String. The database user password.
+- **`ssl`**: Boolean. Whether to use SSL for the connection (default: true).
+
+### 3.2 Database Configuration Methods
+- [ ] **BE-REQ-010**: **Set Database Configuration**
+    - **Input**: A valid `DatabaseConfig` object.
+    - **Expected Outcome**: Configuration is saved locally (e.g., to AsyncStorage or secure storage).
+    - **Expected Outcome**: Future data operations use this configuration to connect.
+- [ ] **BE-REQ-011**: **Get Database Configuration**
+    - **Input**: None.
+    - **Expected Outcome**: Returns the stored `DatabaseConfig` object, or `null` if not configured.
+- [ ] **BE-REQ-012**: **Clear Database Configuration**
+    - **Input**: None.
+    - **Expected Outcome**: Removes stored configuration. App reverts to local-only mode.
+- [ ] **BE-REQ-013**: **Test Database Connection**
+    - **Input**: A `DatabaseConfig` object.
+    - **Expected Outcome**: Returns `true` if connection succeeds, or throws a CONNECTION_ERROR with details.
+
+## 4. Remote Data Persistence (PostgreSQL-Compatible)
+
+### 4.1 Supported Backends
+The application must support any PostgreSQL-compatible database server, including:
+- PostgreSQL
+- Supabase
+- CockroachDB
+- Other PostgreSQL wire-protocol compatible databases
+
+### 4.2 Remote CRUD Operations
+When a valid `DatabaseConfig` is set, data operations must persist to the remote database.
+
+- [ ] **BE-REQ-014**: **Remote CREATE Task**
+    - **Input**: `title` string.
+    - **Expected Outcome**: Task is inserted into the remote `tasks` table and returned with server-generated `id` and `createdAt`.
+- [ ] **BE-REQ-015**: **Remote READ Tasks**
+    - **Input**: None.
+    - **Expected Outcome**: Returns all tasks from the remote `tasks` table, ordered by `created_at DESC`.
+- [ ] **BE-REQ-016**: **Remote UPDATE Task**
+    - **Input**: `taskId`, `completed` (boolean).
+    - **Expected Outcome**: The task's `completed` column is updated in the remote database.
+- [ ] **BE-REQ-017**: **Remote DELETE Task**
+    - **Input**: `taskId`.
+    - **Expected Outcome**: The row is deleted from the remote `tasks` table.
+- [ ] **BE-REQ-018**: **Connection Failure Handling**
+    - **Condition**: Remote database is unreachable.
+    - **Expected Outcome**: Returns/Throws a CONNECTION_ERROR. No silent data loss.
