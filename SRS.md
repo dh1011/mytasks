@@ -103,3 +103,8 @@ When a valid `DatabaseConfig` is set, data operations must persist to the remote
 - [ ] **BE-REQ-018**: **Connection Failure Handling**
     - **Condition**: Remote database is unreachable.
     - **Expected Outcome**: Returns/Throws a CONNECTION_ERROR. No silent data loss.
+- [ ] **BE-REQ-019**: **Test Connection HTTP Endpoint**
+    - **Input**: HTTP POST to `/api/test-connection` with `DatabaseConfig` JSON body.
+    - **Expected Outcome**: Returns `{ success: true }` if connection succeeds.
+    - **Expected Outcome**: Returns `{ success: false, error: "message" }` on connection failure.
+    - **Expected Outcome**: Returns HTTP 400 with error for malformed requests.

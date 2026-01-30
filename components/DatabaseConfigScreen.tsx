@@ -1,223 +1,126 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
     TextInput,
-    TouchableOpacity,
     StyleSheet,
-    ScrollView,
-    Switch,
-    ActivityIndicator,
+    TouchableOpacity,
     Alert,
+    ScrollView,
+    ActivityIndicator,
 } from 'react-native';
-import { useDatabaseConfig } from '../hooks/useDatabaseConfig';
-import { DatabaseConfig } from '../types/DatabaseConfig';
 import { theme } from '../styles/theme';
+import { DatabaseConfig } from '../types/DatabaseConfig'; // Keep usage of types
+import { useDatabaseConfig } from '../hooks/useDatabaseConfig';
+import { testDatabaseConnection } from '../services/connectionTestApi';
 
 interface Props {
     onClose: () => void;
 }
 
 export function DatabaseConfigScreen({ onClose }: Props) {
-    const { config, isLoading, isSaving, error, saveConfig, removeConfig } = useDatabaseConfig();
+    const { config, saveConfig } = useDatabaseConfig();
 
-    const [host, setHost] = useState('');
-    const [port, setPort] = useState('5432');
-    const [database, setDatabase] = useState('');
-    const [user, setUser] = useState('');
-    const [password, setPassword] = useState('');
-    const [ssl, setSsl] = useState(true);
+    // Local state for form inputs
+    const [apiUrl, setApiUrl] = useState(config?.apiUrl || '');
+    const [anonKey, setAnonKey] = useState(config?.anonKey || '');
 
-    // Load existing config into form
-    useEffect(() => {
-        if (config) {
-            setHost(config.host);
-            setPort(config.port.toString());
-            setDatabase(config.database);
-            setUser(config.user);
-            setPassword(config.password);
-            setSsl(config.ssl);
-        }
-    }, [config]);
+    const [isTesting, setIsTesting] = useState(false);
+    const [connectionError, setConnectionError] = useState<string | null>(null);
 
     const handleSave = async () => {
-        const portNum = parseInt(port, 10);
-        if (isNaN(portNum)) {
-            Alert.alert('Error', 'Port must be a number');
-            return;
-        }
-
-        if (!host || !database || !user) {
-            Alert.alert('Error', 'Host, database, and user are required');
-            return;
-        }
+        setConnectionError(null);
+        setIsTesting(true);
 
         const newConfig: DatabaseConfig = {
-            host,
-            port: portNum,
-            database,
-            user,
-            password,
-            ssl,
+            apiUrl: apiUrl.trim(),
+            anonKey: anonKey.trim(),
         };
 
-        const success = await saveConfig(newConfig);
-        if (success) {
-            Alert.alert('Success', 'Database configuration saved');
+        try {
+            const result = await testDatabaseConnection(newConfig);
+
+            if (!result.success) {
+                setConnectionError(result.error || 'Unknown connection error');
+                Alert.alert('Connection Failed', result.error || 'Could not connect to the API.');
+            } else {
+                // Connection successful, save the config
+                const success = await saveConfig(newConfig);
+                if (success) {
+                    Alert.alert('Success', 'API connection verified and configuration saved');
+                    onClose();
+                } else {
+                    Alert.alert('Error', 'Failed to save configuration');
+                }
+            }
+        } catch (error) {
+            setConnectionError((error as Error).message);
+            Alert.alert('Error', 'An unexpected error occurred during validation');
+        } finally {
+            setIsTesting(false);
         }
     };
-
-    const handleClear = async () => {
-        Alert.alert(
-            'Clear Configuration',
-            'Are you sure you want to remove the database configuration?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Clear',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await removeConfig();
-                        setHost('');
-                        setPort('5432');
-                        setDatabase('');
-                        setUser('');
-                        setPassword('');
-                        setSsl(true);
-                    },
-                },
-            ]
-        );
-    };
-
-    if (isLoading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-            </View>
-        );
-    }
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
+                <Text style={styles.headerTitle}>API Configuration</Text>
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                     <Text style={styles.closeButtonText}>✕</Text>
                 </TouchableOpacity>
-                <Text style={styles.title}>DATABASE CONFIG</Text>
-                <View style={styles.placeholder} />
             </View>
 
-            <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
-                {error && (
+            <ScrollView style={styles.content}>
+                <Text style={styles.description}>
+                    Connect to your PostgREST-compatible API (e.g., Supabase).
+                </Text>
+
+                {connectionError && (
                     <View style={styles.errorContainer}>
-                        <Text style={styles.errorText}>{error}</Text>
+                        <Text style={styles.errorText}>Error: {connectionError}</Text>
                     </View>
                 )}
 
-                <View style={styles.statusBar}>
-                    <View style={[styles.statusDot, config ? styles.statusConnected : styles.statusDisconnected]} />
-                    <Text style={styles.statusText}>
-                        {config ? 'Remote database configured' : 'Using local storage'}
-                    </Text>
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>HOST</Text>
+                <View style={styles.formGroup}>
+                    <Text style={styles.label}>API URL</Text>
                     <TextInput
                         style={styles.input}
-                        value={host}
-                        onChangeText={setHost}
-                        placeholder="localhost or db.example.com"
+                        value={apiUrl}
+                        onChangeText={setApiUrl}
+                        placeholder="https://your-project.supabase.co/rest/v1"
                         placeholderTextColor={theme.colors.textMuted}
                         autoCapitalize="none"
                         autoCorrect={false}
                     />
+                    <Text style={styles.hint}>The base URL of your REST API.</Text>
                 </View>
 
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>PORT</Text>
+                <View style={styles.formGroup}>
+                    <Text style={styles.label}>MyTasks Anon Key</Text>
                     <TextInput
                         style={styles.input}
-                        value={port}
-                        onChangeText={setPort}
-                        placeholder="5432"
-                        placeholderTextColor={theme.colors.textMuted}
-                        keyboardType="number-pad"
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>DATABASE</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={database}
-                        onChangeText={setDatabase}
-                        placeholder="mytasks"
+                        value={anonKey}
+                        onChangeText={setAnonKey}
+                        placeholder="eyJhbG..."
                         placeholderTextColor={theme.colors.textMuted}
                         autoCapitalize="none"
                         autoCorrect={false}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>USER</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={user}
-                        onChangeText={setUser}
-                        placeholder="postgres"
-                        placeholderTextColor={theme.colors.textMuted}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>PASSWORD</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder="••••••••"
-                        placeholderTextColor={theme.colors.textMuted}
                         secureTextEntry
                     />
+                    <Text style={styles.hint}>The public 'anon' key for your project.</Text>
                 </View>
 
-                <View style={styles.switchGroup}>
-                    <Text style={styles.label}>USE SSL</Text>
-                    <Switch
-                        value={ssl}
-                        onValueChange={setSsl}
-                        trackColor={{ false: theme.colors.border, true: theme.colors.success }}
-                        thumbColor={theme.colors.primary}
-                    />
-                </View>
-
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                        style={[styles.button, styles.saveButton]}
-                        onPress={handleSave}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? (
-                            <ActivityIndicator size="small" color={theme.colors.background} />
-                        ) : (
-                            <Text style={styles.saveButtonText}>SAVE CONFIGURATION</Text>
-                        )}
-                    </TouchableOpacity>
-
-                    {config && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.clearButton]}
-                            onPress={handleClear}
-                            disabled={isSaving}
-                        >
-                            <Text style={styles.clearButtonText}>CLEAR CONFIGURATION</Text>
-                        </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.saveButton, isTesting && styles.disabledButton]}
+                    onPress={handleSave}
+                    disabled={isTesting}
+                >
+                    {isTesting ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.saveButtonText}>SAVE & CONNECT</Text>
                     )}
-                </View>
+                </TouchableOpacity>
             </ScrollView>
         </View>
     );
@@ -228,133 +131,87 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: theme.colors.surface,
     },
-    loadingContainer: {
-        flex: 1,
-        backgroundColor: theme.colors.surface,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     header: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: theme.spacing.lg,
-        paddingVertical: theme.spacing.md,
+        alignItems: 'center',
+        padding: theme.spacing.lg,
         borderBottomWidth: 1,
         borderBottomColor: theme.colors.border,
     },
-    closeButton: {
-        width: 40,
-        height: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    closeButtonText: {
+    headerTitle: {
         fontSize: theme.fontSize.xl,
-        color: theme.colors.textSecondary,
-    },
-    title: {
-        fontSize: theme.fontSize.lg,
         fontWeight: theme.fontWeight.bold,
         color: theme.colors.text,
-        letterSpacing: theme.letterSpacing.wider,
     },
-    placeholder: {
-        width: 40,
+    closeButton: {
+        padding: theme.spacing.sm,
     },
-    form: {
+    closeButtonText: {
+        fontSize: theme.fontSize.lg,
+        color: theme.colors.text,
+    },
+    content: {
         flex: 1,
-    },
-    formContent: {
         padding: theme.spacing.lg,
     },
-    errorContainer: {
-        backgroundColor: theme.colors.danger + '20',
-        padding: theme.spacing.md,
-        borderRadius: theme.borderRadius.sm,
-        marginBottom: theme.spacing.lg,
-    },
-    errorText: {
-        color: theme.colors.danger,
+    description: {
         fontSize: theme.fontSize.sm,
-    },
-    statusBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: theme.colors.surfaceElevated,
-        padding: theme.spacing.md,
-        borderRadius: theme.borderRadius.sm,
+        color: theme.colors.textMuted,
         marginBottom: theme.spacing.xl,
+        lineHeight: 20,
     },
-    statusDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginRight: theme.spacing.sm,
-    },
-    statusConnected: {
-        backgroundColor: theme.colors.success,
-    },
-    statusDisconnected: {
-        backgroundColor: theme.colors.textMuted,
-    },
-    statusText: {
-        color: theme.colors.textSecondary,
-        fontSize: theme.fontSize.sm,
-    },
-    inputGroup: {
+    formGroup: {
         marginBottom: theme.spacing.lg,
     },
     label: {
-        fontSize: theme.fontSize.xs,
+        fontSize: theme.fontSize.sm,
         fontWeight: theme.fontWeight.medium,
-        color: theme.colors.textMuted,
-        letterSpacing: theme.letterSpacing.wider,
+        color: theme.colors.text,
         marginBottom: theme.spacing.sm,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     input: {
-        backgroundColor: theme.colors.surfaceElevated,
+        backgroundColor: theme.colors.background,
         borderWidth: 1,
         borderColor: theme.colors.border,
-        borderRadius: theme.borderRadius.sm,
+        borderRadius: theme.borderRadius.md,
         padding: theme.spacing.md,
         fontSize: theme.fontSize.md,
         color: theme.colors.text,
     },
-    switchGroup: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: theme.spacing.xl,
-    },
-    buttonContainer: {
-        gap: theme.spacing.md,
-        marginTop: theme.spacing.lg,
-    },
-    button: {
-        paddingVertical: theme.spacing.md,
-        borderRadius: theme.borderRadius.sm,
-        alignItems: 'center',
-        justifyContent: 'center',
+    hint: {
+        fontSize: 11,
+        color: theme.colors.textMuted,
+        marginTop: 4,
     },
     saveButton: {
         backgroundColor: theme.colors.primary,
+        padding: theme.spacing.lg,
+        borderRadius: theme.borderRadius.md,
+        alignItems: 'center',
+        marginTop: theme.spacing.xl,
+    },
+    disabledButton: {
+        opacity: 0.7,
     },
     saveButtonText: {
-        color: theme.colors.background,
-        fontSize: theme.fontSize.sm,
+        color: '#fff',
+        fontSize: theme.fontSize.md,
         fontWeight: theme.fontWeight.bold,
-        letterSpacing: theme.letterSpacing.wider,
+        letterSpacing: 1,
     },
-    clearButton: {
-        backgroundColor: 'transparent',
+    errorContainer: {
+        backgroundColor: '#FFEBEE',
+        padding: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
+        marginBottom: theme.spacing.lg,
         borderWidth: 1,
-        borderColor: theme.colors.danger,
+        borderColor: '#FFCDD2',
     },
-    clearButtonText: {
-        color: theme.colors.danger,
+    errorText: {
+        color: '#D32F2F',
         fontSize: theme.fontSize.sm,
-        fontWeight: theme.fontWeight.bold,
-        letterSpacing: theme.letterSpacing.wider,
     },
 });

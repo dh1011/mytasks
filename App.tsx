@@ -55,7 +55,13 @@ export default function App() {
     addTask,
     toggleTask,
     deleteTask,
+    refresh,
   } = useTasks();
+
+  const handleCloseSettings = () => {
+    setShowSettings(false);
+    refresh();
+  };
 
   const today = new Date();
   const dateString = today.toLocaleDateString('en-US', {
@@ -132,7 +138,7 @@ export default function App() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowSettings(false)}
       >
-        <DatabaseConfigScreen onClose={() => setShowSettings(false)} />
+        <DatabaseConfigScreen onClose={handleCloseSettings} />
       </Modal>
     </SafeAreaView>
   );

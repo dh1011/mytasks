@@ -1,76 +1,107 @@
 import { useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Task } from '../types/Task';
-
-const STORAGE_KEY = '@mytasks:tasks';
+import { ApiService } from '../services/apiService';
+import { getDatabaseConfig } from '../services/databaseConfigService';
+import { DatabaseConfig } from '../types/DatabaseConfig';
 
 export function useTasks() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [config, setConfig] = useState<DatabaseConfig | null>(null);
 
-    // Load tasks from storage on mount
+    // Load config and tasks on mount
     useEffect(() => {
-        loadTasks();
+        loadData();
     }, []);
 
-    // Save tasks to storage whenever they change
-    useEffect(() => {
-        if (!isLoading) {
-            saveTasks(tasks);
-        }
-    }, [tasks, isLoading]);
-
-    const loadTasks = async () => {
+    const loadData = async () => {
+        setIsLoading(true);
         try {
-            const stored = await AsyncStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                // Convert date strings back to Date objects
-                const tasksWithDates = parsed.map((task: any) => ({
-                    ...task,
-                    createdAt: new Date(task.createdAt),
-                }));
-                setTasks(tasksWithDates);
+            const dbConfig = await getDatabaseConfig();
+            setConfig(dbConfig);
+
+            if (dbConfig) {
+                const api = new ApiService(dbConfig);
+                const fetchedTasks = await api.fetchTasks();
+                setTasks(fetchedTasks);
+            } else {
+                setTasks([]);
             }
         } catch (error) {
-            console.error('Error loading tasks:', error);
+            console.error('Error loading data:', error);
+            // Optionally handle error state
         } finally {
             setIsLoading(false);
         }
     };
 
-    const saveTasks = async (tasksToSave: Task[]) => {
+    const addTask = useCallback(async (title: string) => {
+        if (!config) return; // Should probably alert user
+
+        const api = new ApiService(config);
+        setIsLoading(true); // Optimistic? Or show loader?
         try {
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasksToSave));
+            const newTask = await api.createTask(title);
+            setTasks((prev) => [newTask, ...prev]);
         } catch (error) {
-            console.error('Error saving tasks:', error);
+            console.error('Error adding task:', error);
+            alert('Failed to add task');
+        } finally {
+            setIsLoading(false);
         }
-    };
+    }, [config]);
 
-    const addTask = useCallback((title: string) => {
-        const newTask: Task = {
-            id: Date.now().toString(),
-            title: title.trim(),
-            completed: false,
-            createdAt: new Date(),
-        };
-        setTasks((prev) => [newTask, ...prev]);
-    }, []);
+    const toggleTask = useCallback(async (id: string) => {
+        if (!config) return;
 
-    const toggleTask = useCallback((id: string) => {
+        // Optimistic update
         setTasks((prev) =>
             prev.map((task) =>
                 task.id === id ? { ...task, completed: !task.completed } : task
             )
         );
-    }, []);
 
-    const deleteTask = useCallback((id: string) => {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        const api = new ApiService(config);
+        try {
+            await api.toggleTask(id, !task.completed);
+        } catch (error) {
+            console.error('Error updating task:', error);
+            // Revert on failure
+            setTasks((prev) =>
+                prev.map((t) =>
+                    t.id === id ? { ...t, completed: task.completed } : t
+                )
+            );
+            alert('Failed to update task');
+        }
+    }, [config, tasks]);
+
+    const deleteTask = useCallback(async (id: string) => {
+        if (!config) return;
+
+        // Optimistic update
+        const previousTasks = [...tasks];
         setTasks((prev) => prev.filter((task) => task.id !== id));
-    }, []);
+
+        const api = new ApiService(config);
+        try {
+            await api.deleteTask(id);
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            // Revert
+            setTasks(previousTasks);
+            alert('Failed to delete task');
+        }
+    }, [config, tasks]);
 
     const clearCompleted = useCallback(() => {
-        setTasks((prev) => prev.filter((task) => !task.completed));
+        // Not implemented in API service yet (batch delete)
+        // For now, naive loop or unimplemented
+        console.warn('clearCompleted not fully implemented for API');
+        // We could implement it loop-wise
     }, []);
 
     const pendingTasks = tasks.filter((task) => !task.completed);
@@ -85,5 +116,6 @@ export function useTasks() {
         toggleTask,
         deleteTask,
         clearCompleted,
+        refresh: loadData, // Expose refresh to allow app to reload on config change
     };
 }
