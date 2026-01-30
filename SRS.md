@@ -1,12 +1,12 @@
 # Backend & Data Layer Requirements
 
-This document defines the logical data requirements and API/service contracts, independent of the user interface.
+This document defines the data requirements and API/service contracts.
 
 ## 1. Data Model Definitions
 
 ### 1.1 Entity: Task
 The `Task` object must strictly adhere to the following schema:
-- **`id`**: String (UUID or Timestamp-string). Must be unique across the system.
+- **`id`**: String (UUID). Unique across the system.
 - **`title`**: String. Minimum length 1 char. Must not be null.
 - **`completed`**: Boolean. Defaults to `false`.
 - **`createdAt`**: ISO-8601 Date String or Timestamp.
@@ -16,7 +16,7 @@ The `Task` object must strictly adhere to the following schema:
 ### 2.1 CREATE Task
 - [ ] **BE-REQ-001**: **Accept Valid Payload**
     - **Input**: `title` string.
-    - **Expected Outcome**: Returns a `Task` object with a populated `id`, `createdAt`, and `completed: false`. Data is persisted.
+    - **Expected Outcome**: Returns a `Task` object with a populated `id`, `createdAt`, and `completed: false`. Persisted via API.
 - [ ] **BE-REQ-002**: **Sanitization**
     - **Input**: String with leading/trailing whitespace.
     - **Expected Outcome**: Service stores and returns the trimmed string.
@@ -29,14 +29,11 @@ The `Task` object must strictly adhere to the following schema:
     - **Input**: None.
     - **Expected Outcome**: Returns an Array of `Task` objects.
     - **Condition**: Newest tasks should be returned first (descending Sort by `createdAt`).
-- [ ] **BE-REQ-005**: **Data Integrity**
-    - **Expected Outcome**: All returned objects must contain all required fields (`id`, `title`, `completed`, `createdAt`).
 
 ### 2.3 UPDATE Task
 - [ ] **BE-REQ-006**: **Toggle Completion**
     - **Input**: `taskId`, `completed` (boolean).
     - **Expected Outcome**: The specific task's `completed` flag is updated in persistence.
-    - **Expected Outcome**: Returns the updated `Task` object.
 - [ ] **BE-REQ-007**: **Update Non-Existent Task**
     - **Input**: `taskId` (non-existent).
     - **Expected Outcome**: Returns/Throws a NOT_FOUND error.
@@ -44,67 +41,42 @@ The `Task` object must strictly adhere to the following schema:
 ### 2.4 DELETE Task
 - [ ] **BE-REQ-008**: **Delete by ID**
     - **Input**: `taskId`.
-    - **Expected Outcome**: The task is permanently removed from the backing store.
-    - **Expected Outcome**: Subsequent Fetch All operations do not include this ID.
+    - **Expected Outcome**: The task is permanently removed.
 - [ ] **BE-REQ-009**: **Delete Idempotency**
-    - **Input**: `taskId` (that was just deleted).
-    - **Expected Outcome**: Operation completes successfully (or returns specific "already deleted" status), but does not throw a system error.
+    - **Expected Outcome**: Operation completes successfully even if task is already deleted.
 
-## 3. Database Configuration
+## 3. API Configuration (PostgREST)
 
 ### 3.1 Entity: DatabaseConfig
-The `DatabaseConfig` object defines connection parameters for a PostgreSQL-compatible database:
-- **`host`**: String. The database server hostname or IP address.
-- **`port`**: Number. The database server port (default: 5432).
-- **`database`**: String. The name of the database.
-- **`user`**: String. The database user for authentication.
-- **`password`**: String. The database user password.
-- **`ssl`**: Boolean. Whether to use SSL for the connection (default: true).
+The `DatabaseConfig` object defines connection parameters for the PostgREST-compatible API:
+- **`apiUrl`**: String. The base URL of the PostgREST API (e.g., Supabase REST URL).
+- **`anonKey`**: String. The public anonymous key for authorization.
 
-### 3.2 Database Configuration Methods
-- [ ] **BE-REQ-010**: **Set Database Configuration**
+### 3.2 Configuration Methods
+- [ ] **BE-REQ-010**: **Set API Configuration**
     - **Input**: A valid `DatabaseConfig` object.
-    - **Expected Outcome**: Configuration is saved locally (e.g., to AsyncStorage or secure storage).
-    - **Expected Outcome**: Future data operations use this configuration to connect.
-- [ ] **BE-REQ-011**: **Get Database Configuration**
+    - **Expected Outcome**: Configuration is saved locally.
+    - **Expected Outcome**: Future data operations use this configuration.
+- [ ] **BE-REQ-011**: **Get API Configuration**
     - **Input**: None.
-    - **Expected Outcome**: Returns the stored `DatabaseConfig` object, or `null` if not configured.
-- [ ] **BE-REQ-012**: **Clear Database Configuration**
+    - **Expected Outcome**: Returns the stored `DatabaseConfig` object, or `null`.
+- [ ] **BE-REQ-012**: **Clear API Configuration**
     - **Input**: None.
-    - **Expected Outcome**: Removes stored configuration. App reverts to local-only mode.
-- [ ] **BE-REQ-013**: **Test Database Connection**
+    - **Expected Outcome**: Removes stored configuration.
+- [ ] **BE-REQ-013**: **Test API Connection**
     - **Input**: A `DatabaseConfig` object.
-    - **Expected Outcome**: Returns `true` if connection succeeds, or throws a CONNECTION_ERROR with details.
+    - **Expected Outcome**: Returns `true` if API is reachable and authorized.
 
-## 4. Remote Data Persistence (PostgreSQL-Compatible)
+## 4. Remote Data Persistence (PostgREST-Compatible)
 
 ### 4.1 Supported Backends
-The application must support any PostgreSQL-compatible database server, including:
-- PostgreSQL
-- Supabase
-- CockroachDB
-- Other PostgreSQL wire-protocol compatible databases
+The application must support any PostgREST-compatible API, specifically **Supabase**.
 
 ### 4.2 Remote CRUD Operations
-When a valid `DatabaseConfig` is set, data operations must persist to the remote database.
+When a valid configuration is set, data operations must persist to the remote API.
 
-- [ ] **BE-REQ-014**: **Remote CREATE Task**
-    - **Input**: `title` string.
-    - **Expected Outcome**: Task is inserted into the remote `tasks` table and returned with server-generated `id` and `createdAt`.
-- [ ] **BE-REQ-015**: **Remote READ Tasks**
-    - **Input**: None.
-    - **Expected Outcome**: Returns all tasks from the remote `tasks` table, ordered by `created_at DESC`.
-- [ ] **BE-REQ-016**: **Remote UPDATE Task**
-    - **Input**: `taskId`, `completed` (boolean).
-    - **Expected Outcome**: The task's `completed` column is updated in the remote database.
-- [ ] **BE-REQ-017**: **Remote DELETE Task**
-    - **Input**: `taskId`.
-    - **Expected Outcome**: The row is deleted from the remote `tasks` table.
-- [ ] **BE-REQ-018**: **Connection Failure Handling**
-    - **Condition**: Remote database is unreachable.
-    - **Expected Outcome**: Returns/Throws a CONNECTION_ERROR. No silent data loss.
-- [ ] **BE-REQ-019**: **Test Connection HTTP Endpoint**
-    - **Input**: HTTP POST to `/api/test-connection` with `DatabaseConfig` JSON body.
-    - **Expected Outcome**: Returns `{ success: true }` if connection succeeds.
-    - **Expected Outcome**: Returns `{ success: false, error: "message" }` on connection failure.
-    - **Expected Outcome**: Returns HTTP 400 with error for malformed requests.
+- [ ] **BE-REQ-014**: **Remote CREATE Task**: `POST /tasks`
+- [ ] **BE-REQ-015**: **Remote READ Tasks**: `GET /tasks`
+- [ ] **BE-REQ-016**: **Remote UPDATE Task**: `PATCH /tasks`
+- [ ] **BE-REQ-017**: **Remote DELETE Task**: `DELETE /tasks`
+- [ ] **BE-REQ-018**: **Connection Failure Handling**: Returns/Throws error on network failure.

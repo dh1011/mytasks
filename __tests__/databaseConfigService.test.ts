@@ -13,12 +13,8 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 describe('Database Configuration Service (BE-REQ-010 to BE-REQ-012)', () => {
     const testConfig: DatabaseConfig = {
-        host: 'localhost',
-        port: 5432,
-        database: 'testdb',
-        user: 'testuser',
-        password: 'testpass',
-        ssl: true,
+        apiUrl: 'https://test.supabase.co/rest/v1',
+        anonKey: 'test-anon-key',
     };
 
     beforeEach(async () => {
@@ -35,12 +31,8 @@ describe('Database Configuration Service (BE-REQ-010 to BE-REQ-012)', () => {
             expect(stored).not.toBeNull();
 
             const parsed = JSON.parse(stored!);
-            expect(parsed.host).toBe('localhost');
-            expect(parsed.port).toBe(5432);
-            expect(parsed.database).toBe('testdb');
-            expect(parsed.user).toBe('testuser');
-            expect(parsed.password).toBe('testpass');
-            expect(parsed.ssl).toBe(true);
+            expect(parsed.apiUrl).toBe('https://test.supabase.co/rest/v1');
+            expect(parsed.anonKey).toBe('test-anon-key');
         });
     });
 
@@ -57,12 +49,8 @@ describe('Database Configuration Service (BE-REQ-010 to BE-REQ-012)', () => {
             const config = await getDatabaseConfig();
 
             expect(config).not.toBeNull();
-            expect(config?.host).toBe('localhost');
-            expect(config?.port).toBe(5432);
-            expect(config?.database).toBe('testdb');
-            expect(config?.user).toBe('testuser');
-            expect(config?.password).toBe('testpass');
-            expect(config?.ssl).toBe(true);
+            expect(config?.apiUrl).toBe('https://test.supabase.co/rest/v1');
+            expect(config?.anonKey).toBe('test-anon-key');
         });
     });
 
