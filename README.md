@@ -66,17 +66,9 @@ Click the ⚙️ icon in the app to configure your database connection.
 ├── services/               # Backend services
 ├── types/                  # TypeScript types
 ├── __tests__/              # Unit tests
-├── scripts/                # Integration test scripts
-└── .github/workflows/      # CI/CD pipelines
+└── scripts/                # Integration test scripts
 ```
-
-## CI/CD
-
-GitHub Actions workflow runs on every push:
-- Security audit (npm audit)
-- Unit tests
-- TypeScript type checking
 
 ## License
 
-Private
+MIT
