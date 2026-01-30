@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,13 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { useTasks } from './hooks/useTasks';
 import { AddTaskForm } from './components/AddTaskForm';
 import { TaskList } from './components/TaskList';
+import { DatabaseConfigScreen } from './components/DatabaseConfigScreen';
 import { theme } from './styles/theme';
 
 // Grid background component for the modernist aesthetic
@@ -45,6 +48,7 @@ function GridBackground() {
 }
 
 export default function App() {
+  const [showSettings, setShowSettings] = useState(false);
   const {
     tasks,
     isLoading,
@@ -83,7 +87,15 @@ export default function App() {
         <View style={styles.cardWrapper}>
           <View style={styles.card}>
             <View style={styles.header}>
-              <Text style={styles.date}>{dateString}</Text>
+              <View style={styles.headerTop}>
+                <Text style={styles.date}>{dateString}</Text>
+                <TouchableOpacity
+                  style={styles.settingsButton}
+                  onPress={() => setShowSettings(true)}
+                >
+                  <Text style={styles.settingsIcon}>⚙</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={styles.title}>MY TASKS</Text>
               <View style={styles.statsContainer}>
                 <View style={styles.stat}>
@@ -112,6 +124,16 @@ export default function App() {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Settings Modal */}
+      <Modal
+        visible={showSettings}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowSettings(false)}
+      >
+        <DatabaseConfigScreen onClose={() => setShowSettings(false)} />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -220,6 +242,21 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
     letterSpacing: theme.letterSpacing.wider,
     fontWeight: theme.fontWeight.medium,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  settingsButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsIcon: {
+    fontSize: theme.fontSize.xl,
+    color: theme.colors.textMuted,
   },
   listContainer: {
     flex: 1,
