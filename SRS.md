@@ -10,8 +10,20 @@ The `Task` object must strictly adhere to the following schema:
 - **`title`**: String. Minimum length 1 char. Must not be null.
 - **`completed`**: Boolean. Defaults to `false`.
 - **`createdAt`**: ISO-8601 Date String or Timestamp.
+- **`reminderAt`**: ISO-8601 Date String or Timestamp (Optional). The UTC time when a notification should trigger.
 
 ## 2. API / Data Service Methods
+
+### 2.0 Notification Service
+- [ ] **FE-REQ-001**: **Schedule Notification**
+    - **Input**: `title`, `body`, `triggerDate`.
+    - **Expected Outcome**: A local notification is scheduled on the device.
+- [ ] **FE-REQ-002**: **Cancel Notification**
+    - **Input**: `notificationId` (or mapped task ID).
+    - **Expected Outcome**: The scheduled notification is removed.
+- [ ] **FE-REQ-003**: **Handle Permissions**
+    - **Input**: None.
+    - **Expected Outcome**: Application requests/verifies notification permissions on startup or first use.
 
 ### 2.1 CREATE Task
 - [ ] **BE-REQ-001**: **Accept Valid Payload**
@@ -34,6 +46,10 @@ The `Task` object must strictly adhere to the following schema:
 - [ ] **BE-REQ-006**: **Toggle Completion**
     - **Input**: `taskId`, `completed` (boolean).
     - **Expected Outcome**: The specific task's `completed` flag is updated in persistence.
+- [ ] **BE-REQ-006b**: **Update Task Details**
+    - **Input**: `taskId`, Partial `Task` object (e.g., `reminderAt`).
+    - **Expected Outcome**: The specific task's fields are updated in persistence.  
+    - **Note**: This generalizes the update capability beyond just toggling completion.
 - [ ] **BE-REQ-007**: **Update Non-Existent Task**
     - **Input**: `taskId` (non-existent).
     - **Expected Outcome**: Returns/Throws a NOT_FOUND error.

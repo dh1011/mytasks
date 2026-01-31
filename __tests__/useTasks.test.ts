@@ -24,6 +24,7 @@ const mockApiService = {
     fetchTasks: jest.fn().mockResolvedValue([]),
     createTask: jest.fn().mockResolvedValue(mockTasks[0]),
     toggleTask: jest.fn().mockResolvedValue({ ...mockTasks[0], completed: true }),
+    updateTask: jest.fn().mockImplementation((id, updates) => Promise.resolve({ ...mockTasks[0], ...updates })),
     deleteTask: jest.fn().mockResolvedValue(undefined),
     deleteCompletedTasks: jest.fn().mockResolvedValue(undefined),
 };
@@ -70,7 +71,7 @@ describe('Backend SRS Requirements (via useTasks)', () => {
             await result.current.toggleTask(taskId);
         });
 
-        expect(mockApiService.toggleTask).toHaveBeenCalledWith(taskId, true);
+        expect(mockApiService.updateTask).toHaveBeenCalledWith(taskId, { completed: true });
         expect(result.current.tasks[0].completed).toBe(true);
     });
 

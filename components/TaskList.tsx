@@ -7,10 +7,11 @@ import { theme } from '../styles/theme';
 interface TaskListProps {
     tasks: Task[];
     onToggle: (id: string) => void;
+    onUpdate: (id: string, updates: Partial<Task>) => void;
     onDelete: (id: string) => void;
 }
 
-export function TaskList({ tasks, onToggle, onDelete }: TaskListProps) {
+export function TaskList({ tasks, onToggle, onUpdate, onDelete }: TaskListProps) {
     if (tasks.length === 0) {
         return (
             <View style={styles.emptyContainer}>
@@ -33,6 +34,7 @@ export function TaskList({ tasks, onToggle, onDelete }: TaskListProps) {
                 <TaskItem
                     task={item}
                     onToggle={onToggle}
+                    onUpdate={onUpdate}
                     onDelete={onDelete}
                 />
             )}

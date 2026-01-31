@@ -12,11 +12,40 @@ import { theme } from '../styles/theme';
 interface TaskItemProps {
     task: Task;
     onToggle: (id: string) => void;
+    onUpdate: (id: string, updates: Partial<Task>) => void;
     onDelete: (id: string) => void;
 }
 
-export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { NotificationService } from '../services/NotificationService';
+import { Platform } from 'react-native';
+
+export function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskItemProps) {
     const [scaleAnim] = React.useState(() => new Animated.Value(1));
+    const [showDatePicker, setShowDatePicker] = React.useState(false);
+
+    // Check if task has a future reminder
+    const hasReminder = task.reminderAt && new Date(task.reminderAt) > new Date();
+
+    const handleReminderConfig = async () => {
+        const hasPermission = await NotificationService.registerForPushNotificationsAsync();
+        if (!hasPermission) {
+            alert('Permission needed to show notifications');
+            return;
+        }
+        setShowDatePicker(true);
+    };
+
+    const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        setShowDatePicker(false);
+        if (event.type === 'set' && selectedDate) {
+            // Schedule notification
+            NotificationService.scheduleNotification(task.id, 'Task Reminder', task.title, selectedDate);
+            // Update DB
+            onUpdate(task.id, { reminderAt: selectedDate });
+        }
+    };
+
 
     const handleToggle = () => {
         // Animate the press
@@ -51,6 +80,32 @@ export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
                     {task.title}
                 </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleReminderConfig}
+            >
+                <View style={styles.reminderContainer}>
+                    <Text style={[styles.actionIcon, hasReminder && styles.activeIcon]}>
+                        {hasReminder ? '🔔' : '🔕'}
+                    </Text>
+                    {hasReminder && (
+                        <Text style={styles.reminderText}>
+                            {new Date(task.reminderAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    )}
+                </View>
+            </TouchableOpacity>
+
+            {showDatePicker && (
+                <DateTimePicker
+                    value={task.reminderAt ? new Date(task.reminderAt) : new Date()}
+                    mode="datetime"
+                    is24Hour={true}
+                    onChange={onDateChange}
+                    minimumDate={new Date()}
+                />
+            )}
             <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => onDelete(task.id)}
@@ -108,6 +163,27 @@ const styles = StyleSheet.create({
     titleCompleted: {
         color: theme.colors.textMuted,
         textDecorationLine: 'line-through',
+    },
+    actionButton: {
+        padding: theme.spacing.xs,
+        marginLeft: theme.spacing.sm,
+    },
+    actionIcon: {
+        fontSize: 18,
+        color: theme.colors.textMuted,
+    },
+    activeIcon: {
+        color: theme.colors.primary,
+    },
+    reminderContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    reminderText: {
+        marginLeft: theme.spacing.xs,
+        fontSize: theme.fontSize.xs,
+        color: theme.colors.primary,
+        fontWeight: theme.fontWeight.medium,
     },
     deleteButton: {
         padding: theme.spacing.xs,

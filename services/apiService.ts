@@ -6,6 +6,7 @@ interface TaskRow {
     title: string;
     completed: boolean;
     created_at: string;
+    reminder_at: string | null;
 }
 
 export class ApiService {
@@ -68,6 +69,7 @@ export class ApiService {
             title: row.title,
             completed: row.completed,
             createdAt: new Date(row.created_at),
+            reminderAt: row.reminder_at ? new Date(row.reminder_at) : undefined,
         }));
     }
 
@@ -90,18 +92,26 @@ export class ApiService {
             title: row.title,
             completed: row.completed,
             createdAt: new Date(row.created_at),
+            reminderAt: row.reminder_at ? new Date(row.reminder_at) : undefined,
         };
     }
 
-    async toggleTask(id: string, completed: boolean): Promise<Task> {
+    async updateTask(id: string, updates: Partial<Task>): Promise<Task> {
+        const payload: any = {};
+        if (updates.title !== undefined) payload.title = updates.title;
+        if (updates.completed !== undefined) payload.completed = updates.completed;
+        if (updates.reminderAt !== undefined) payload.reminder_at = updates.reminderAt;
+
         const response = await fetch(this.getUrl(`tasks?id=eq.${id}`), {
             method: 'PATCH',
             headers: this.headers,
-            body: JSON.stringify({ completed }),
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to update task: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('Update failed:', errorText);
+            throw new Error(`Failed to update task: ${response.status} ${errorText}`);
         }
 
         const data = await response.json();
@@ -112,6 +122,7 @@ export class ApiService {
             title: row.title,
             completed: row.completed,
             createdAt: new Date(row.created_at),
+            reminderAt: row.reminder_at ? new Date(row.reminder_at) : undefined,
         };
     }
 

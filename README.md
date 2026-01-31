@@ -63,7 +63,19 @@ The easiest way to run the backend locally is using Docker Compose. This will st
 2. The database will be automatically initialized with the necessary tables and roles via `db/init.sql`.
 3. The PostgREST API will be available at `http://localhost:3001`.
 
-### Option 2: Supabase
+### Option 2: Local Testing with Mock Data
+
+To spin up the backend with pre-populated mock data for testing:
+
+1. Start the test services:
+   ```bash
+   docker compose -f compose-test.yml up -d
+   ```
+2. This creates 5 sample tasks (some completed, some pending).
+3. The API is available at `http://localhost:3001`.
+4. **Important**: This shares the same port as the regular dev environment. Stop one before starting the other.
+
+### Option 3: Supabase
 
 If you prefer to use Supabase, you need to manually create the table and policies since Supabase does not use our local `init.sql`.
 
@@ -77,7 +89,8 @@ If you prefer to use Supabase, you need to manually create the table and policie
        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
        title TEXT NOT NULL,
        completed BOOLEAN NOT NULL DEFAULT FALSE,
-       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       reminder_at TIMESTAMPTZ
    );
 
    -- 2. Create the index

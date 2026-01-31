@@ -57,6 +57,7 @@ export default function App() {
     tasks,
     isLoading,
     addTask,
+    updateTask,
     toggleTask,
     deleteTask,
     clearCompleted,
@@ -148,6 +149,7 @@ export default function App() {
                       })
                   }
                   onToggle={toggleTask}
+                  onUpdate={updateTask}
                   onDelete={deleteTask}
                 />
               </View>

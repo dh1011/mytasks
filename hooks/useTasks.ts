@@ -54,33 +54,34 @@ export function useTasks() {
         }
     }, [config]);
 
-    const toggleTask = useCallback(async (id: string) => {
+    const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
         if (!config || !config.apiUrl || !config.anonKey) return;
 
         // Optimistic update
+        const previousTasks = [...tasks];
         setTasks((prev) =>
             prev.map((task) =>
-                task.id === id ? { ...task, completed: !task.completed } : task
+                task.id === id ? { ...task, ...updates } : task
             )
         );
 
-        const task = tasks.find(t => t.id === id);
-        if (!task) return;
-
         const api = new ApiService(config);
         try {
-            await api.toggleTask(id, !task.completed);
+            await api.updateTask(id, updates);
         } catch (error) {
             console.error('Error updating task:', error);
-            // Revert on failure
-            setTasks((prev) =>
-                prev.map((t) =>
-                    t.id === id ? { ...t, completed: task.completed } : t
-                )
-            );
+            // Revert
+            setTasks(previousTasks);
             alert('Failed to update task');
         }
     }, [config, tasks]);
+
+    const toggleTask = useCallback(async (id: string) => {
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            await updateTask(id, { completed: !task.completed });
+        }
+    }, [tasks, updateTask]);
 
     const deleteTask = useCallback(async (id: string) => {
         if (!config || !config.apiUrl || !config.anonKey) return;
@@ -127,6 +128,7 @@ export function useTasks() {
         completedTasks,
         isLoading,
         addTask,
+        updateTask,
         toggleTask,
         deleteTask,
         clearCompleted,
