@@ -48,14 +48,58 @@ docker compose up -d
 npm run test:integration
 ```
 
-## Database Configuration
+## Backend Setup
 
-The app supports connecting to any PostgreSQL-compatible database:
-- PostgreSQL
-- Supabase
-- CockroachDB
+The app uses a **PostgREST** compatible backend (PostgreSQL + PostgREST). You can run this locally or use a managed service like Supabase.
 
-Click the ⚙️ icon in the app to configure your database connection.
+### Option 1: Local Development (Docker)
+
+The easiest way to run the backend locally is using Docker Compose. This will start a PostgreSQL database and a PostgREST server.
+
+1. Start the services:
+   ```bash
+   docker compose up -d
+   ```
+2. The database will be automatically initialized with the necessary tables and roles via `db/init.sql`.
+3. The PostgREST API will be available at `http://localhost:3001`.
+
+### Option 2: Supabase
+
+If you prefer to use Supabase, you need to manually create the table and policies since Supabase does not use our local `init.sql`.
+
+1. Create a new Supabase project.
+2. Go to the **SQL Editor** in your Supabase dashboard.
+3. Run the following SQL to create the table and enable access:
+
+   ```sql
+   -- 1. Create the table
+   CREATE TABLE IF NOT EXISTS tasks (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       title TEXT NOT NULL,
+       completed BOOLEAN NOT NULL DEFAULT FALSE,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   );
+
+   -- 2. Create the index
+   CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC);
+
+   -- 3. Enable public access (simplest for this demo)
+   -- Note: Supabase enables RLS by default. We'll disable it for simplicity here,
+   -- or you can add policies for 'anon' role.
+   ALTER TABLE tasks DISABLE ROW LEVEL SECURITY;
+   ```
+
+### Connecting the App
+
+1. Open the App.
+2. Click the ⚙️ icon in the top header.
+3. Enter your connection details:
+   - **Local**: 
+     - API URL: `http://localhost:3001`
+     - Anon Key: (Leave empty for local PostgREST unless configured)
+   - **Supabase**: 
+     - API URL: `https://<your-project>.supabase.co/rest/v1`
+     - Anon Key: `<your-anon-public-key>`
 
 ## Project Structure
 
