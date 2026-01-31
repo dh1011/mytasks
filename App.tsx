@@ -68,14 +68,6 @@ export default function App() {
     refresh();
   };
 
-  const today = new Date();
-  const dateString = today.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const pendingCount = tasks.filter((t) => !t.completed).length;
   const completedCount = tasks.filter((t) => t.completed).length;
 
   if (isLoading) {
@@ -100,27 +92,12 @@ export default function App() {
             <View style={styles.card}>
               <View style={styles.header}>
                 <View style={styles.headerTop}>
-                  <Text style={styles.date}>{dateString}</Text>
                   <TouchableOpacity
                     style={styles.settingsButton}
                     onPress={() => setShowSettings(true)}
                   >
                     <Text style={styles.settingsIcon}>⚙</Text>
                   </TouchableOpacity>
-                </View>
-                <Text style={styles.title}>MY TASKS</Text>
-                <View style={styles.statsContainer}>
-                  <View style={styles.stat}>
-                    <Text style={styles.statNumber}>{pendingCount}</Text>
-                    <Text style={styles.statLabel}>PENDING</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.stat}>
-                    <Text style={[styles.statNumber, styles.statSuccess]}>
-                      {completedCount}
-                    </Text>
-                    <Text style={styles.statLabel}>DONE</Text>
-                  </View>
                 </View>
               </View>
 
@@ -257,57 +234,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.borderLight,
   },
-  date: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textMuted,
-    fontWeight: theme.fontWeight.medium,
-    textTransform: 'uppercase',
-    letterSpacing: theme.letterSpacing.widest,
-    marginBottom: theme.spacing.xs,
-  },
-  title: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text,
-    letterSpacing: theme.letterSpacing.wide,
-    marginBottom: theme.spacing.lg,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  stat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: theme.colors.border,
-  },
-  statNumber: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text,
-  },
-  statSuccess: {
-    color: theme.colors.success,
-  },
-  statLabel: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textMuted,
-    marginTop: theme.spacing.xs,
-    letterSpacing: theme.letterSpacing.wider,
-    fontWeight: theme.fontWeight.medium,
-  },
   headerTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   settingsButton: {
