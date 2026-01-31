@@ -80,3 +80,5 @@ When a valid configuration is set, data operations must persist to the remote AP
 - [ ] **BE-REQ-016**: **Remote UPDATE Task**: `PATCH /tasks`
 - [ ] **BE-REQ-017**: **Remote DELETE Task**: `DELETE /tasks`
 - [ ] **BE-REQ-018**: **Connection Failure Handling**: Returns/Throws error on network failure.
+- [ ] **BE-REQ-019**: **Remote DELETE Completed Tasks**: `DELETE /tasks` with filter `completed=eq.true`
+

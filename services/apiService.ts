@@ -125,4 +125,15 @@ export class ApiService {
             throw new Error(`Failed to delete task: ${response.statusText}`);
         }
     }
+
+    async deleteCompletedTasks(): Promise<void> {
+        const response = await fetch(this.getUrl('tasks?completed=eq.true'), {
+            method: 'DELETE',
+            headers: this.headers,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete completed tasks: ${response.statusText}`);
+        }
+    }
 }

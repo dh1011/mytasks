@@ -100,12 +100,23 @@ export function useTasks() {
         }
     }, [config, tasks]);
 
-    const clearCompleted = useCallback(() => {
-        // Not implemented in API service yet (batch delete)
-        // For now, naive loop or unimplemented
-        console.warn('clearCompleted not fully implemented for API');
-        // We could implement it loop-wise
-    }, []);
+    const clearCompleted = useCallback(async () => {
+        if (!config || !config.apiUrl || !config.anonKey) return;
+
+        // Optimistic update
+        const previousTasks = [...tasks];
+        setTasks((prev) => prev.filter((task) => !task.completed));
+
+        const api = new ApiService(config);
+        try {
+            await api.deleteCompletedTasks();
+        } catch (error) {
+            console.error('Error clearing completed tasks:', error);
+            // Revert
+            setTasks(previousTasks);
+            alert('Failed to delete completed tasks');
+        }
+    }, [config, tasks]);
 
     const pendingTasks = tasks.filter((task) => !task.completed);
     const completedTasks = tasks.filter((task) => task.completed);

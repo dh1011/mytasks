@@ -10,6 +10,8 @@ import {
   Platform,
   TouchableOpacity,
   Modal,
+  Switch,
+  Alert,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTasks } from './hooks/useTasks';
@@ -50,12 +52,14 @@ function GridBackground() {
 
 export default function App() {
   const [showSettings, setShowSettings] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
   const {
     tasks,
     isLoading,
     addTask,
     toggleTask,
     deleteTask,
+    clearCompleted,
     refresh,
   } = useTasks();
 
@@ -120,11 +124,52 @@ export default function App() {
                 </View>
               </View>
 
+
+
+              <View style={styles.controlsContainer}>
+                <View style={styles.toggleContainer}>
+                  <Switch
+                    value={showCompleted}
+                    onValueChange={setShowCompleted}
+                    trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                    thumbColor={Platform.OS === 'android' ? theme.colors.text : '#fff'}
+                    ios_backgroundColor={theme.colors.border}
+                  />
+                  <Text style={styles.toggleLabel}>SHOW COMPLETED</Text>
+                </View>
+
+                {completedCount > 0 && (
+                  <TouchableOpacity
+                    style={styles.clearButton}
+                    onPress={() => {
+                      Alert.alert(
+                        "Delete Completed",
+                        "Are you sure you want to delete all completed tasks?",
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          { text: "Delete", onPress: clearCompleted, style: "destructive" }
+                        ]
+                      );
+                    }}
+                  >
+                    <Text style={styles.clearButtonText}>CLEAR DONE</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
               <AddTaskForm onAdd={addTask} />
 
               <View style={styles.listContainer}>
                 <TaskList
-                  tasks={tasks}
+                  tasks={
+                    tasks
+                      .filter(t => showCompleted ? true : !t.completed)
+                      .sort((a, b) => {
+                        // Sort by completed status (false first, true last)
+                        if (a.completed === b.completed) return 0;
+                        return a.completed ? 1 : -1;
+                      })
+                  }
                   onToggle={toggleTask}
                   onDelete={deleteTask}
                 />
@@ -277,5 +322,34 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
+  },
+  controlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  toggleLabel: {
+    marginLeft: theme.spacing.sm,
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.textMuted,
+    letterSpacing: theme.letterSpacing.wider,
+  },
+  clearButton: {
+    paddingVertical: 4,
+  },
+  clearButtonText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.danger,
+    letterSpacing: theme.letterSpacing.wider,
   },
 });

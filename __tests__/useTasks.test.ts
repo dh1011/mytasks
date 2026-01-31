@@ -25,6 +25,7 @@ const mockApiService = {
     createTask: jest.fn().mockResolvedValue(mockTasks[0]),
     toggleTask: jest.fn().mockResolvedValue({ ...mockTasks[0], completed: true }),
     deleteTask: jest.fn().mockResolvedValue(undefined),
+    deleteCompletedTasks: jest.fn().mockResolvedValue(undefined),
 };
 
 jest.mock('../services/apiService', () => ({
@@ -87,5 +88,26 @@ describe('Backend SRS Requirements (via useTasks)', () => {
 
         expect(mockApiService.deleteTask).toHaveBeenCalledWith(taskId);
         expect(result.current.tasks).toHaveLength(0);
+    });
+    it('BE-REQ-019: Deletes all completed tasks', async () => {
+        const tasksWithCompleted = [
+            { id: '1', title: 'Task 1', completed: true, createdAt: new Date() },
+            { id: '2', title: 'Task 2', completed: false, createdAt: new Date() },
+        ];
+        mockApiService.fetchTasks.mockResolvedValue(tasksWithCompleted);
+
+        const { result } = renderHook(() => useTasks());
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+        expect(result.current.tasks).toHaveLength(2);
+
+        await act(async () => {
+            await result.current.clearCompleted();
+        });
+
+        expect(mockApiService.deleteCompletedTasks).toHaveBeenCalled();
+        // Optimistic update check
+        expect(result.current.tasks).toHaveLength(1);
+        expect(result.current.tasks[0].id).toBe('2');
     });
 });
