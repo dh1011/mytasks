@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Feather } from '@expo/vector-icons';
 import {
   View,
   Text,
@@ -97,7 +98,7 @@ export default function App() {
                     style={styles.settingsButton}
                     onPress={() => setShowSettings(true)}
                   >
-                    <Text style={styles.settingsIcon}>⚙</Text>
+                    <Feather name="settings" size={24} color={theme.colors.textMuted} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -247,10 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  settingsIcon: {
-    fontSize: theme.fontSize.xl,
-    color: theme.colors.textMuted,
-  },
+
   listContainer: {
     flex: 1,
   },

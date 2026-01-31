@@ -97,10 +97,10 @@ export class ApiService {
     }
 
     async updateTask(id: string, updates: Partial<Task>): Promise<Task> {
-        const payload: any = {};
+        const payload: Partial<TaskRow> = {};
         if (updates.title !== undefined) payload.title = updates.title;
         if (updates.completed !== undefined) payload.completed = updates.completed;
-        if (updates.reminderAt !== undefined) payload.reminder_at = updates.reminderAt;
+        if (updates.reminderAt !== undefined) payload.reminder_at = updates.reminderAt ? updates.reminderAt.toISOString() : null;
 
         const response = await fetch(this.getUrl(`tasks?id=eq.${id}`), {
             method: 'PATCH',

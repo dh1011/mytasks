@@ -1,4 +1,5 @@
 import React from 'react';
+import { Feather } from '@expo/vector-icons';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { Task } from '../types/Task';
 import { TaskItem } from './TaskItem';
@@ -16,7 +17,7 @@ export function TaskList({ tasks, onToggle, onUpdate, onDelete }: TaskListProps)
         return (
             <View style={styles.emptyContainer}>
                 <View style={styles.emptyIconContainer}>
-                    <Text style={styles.emptyIcon}>☐</Text>
+                    <Feather name="inbox" size={32} color={theme.colors.textMuted} />
                 </View>
                 <Text style={styles.emptyTitle}>NO TASKS YET</Text>
                 <Text style={styles.emptySubtitle}>
@@ -64,10 +65,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: theme.spacing.lg,
     },
-    emptyIcon: {
-        fontSize: 32,
-        color: theme.colors.textMuted,
-    },
+
     emptyTitle: {
         fontSize: theme.fontSize.sm,
         fontWeight: theme.fontWeight.semibold,

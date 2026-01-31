@@ -1,4 +1,5 @@
 import React from 'react';
+import { Feather } from '@expo/vector-icons';
 import {
     View,
     Text,
@@ -18,7 +19,6 @@ interface TaskItemProps {
 
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { NotificationService } from '../services/NotificationService';
-import { Platform } from 'react-native';
 
 export function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskItemProps) {
     const [scaleAnim] = React.useState(() => new Animated.Value(1));
@@ -74,7 +74,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskItemProps) 
             >
                 {/* Linear iconography - thin outline checkbox */}
                 <View style={[styles.checkbox, task.completed && styles.checkboxCompleted]}>
-                    {task.completed && <Text style={styles.checkmark}>✓</Text>}
+                    {task.completed && <Feather name="check" size={12} color={theme.colors.background} strokeWidth={4} />}
                 </View>
                 <Text style={[styles.title, task.completed && styles.titleCompleted]}>
                     {task.title}
@@ -86,9 +86,13 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskItemProps) 
                 onPress={handleReminderConfig}
             >
                 <View style={styles.reminderContainer}>
-                    <Text style={[styles.actionIcon, hasReminder && styles.activeIcon]}>
-                        {hasReminder ? '🔔' : '🔕'}
-                    </Text>
+                    <View style={styles.actionIconContainer}>
+                        {hasReminder ? (
+                            <Feather name="bell" size={16} color={theme.colors.primary} />
+                        ) : (
+                            <Feather name="bell-off" size={16} color={theme.colors.textMuted} />
+                        )}
+                    </View>
                     {hasReminder && (
                         <Text style={styles.reminderText}>
                             {new Date(task.reminderAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -111,7 +115,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskItemProps) 
                 onPress={() => onDelete(task.id)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <Text style={styles.deleteText}>×</Text>
+                <Feather name="x" size={20} color={theme.colors.textMuted} />
             </TouchableOpacity>
         </Animated.View>
     );
@@ -148,11 +152,6 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.success,
         borderColor: theme.colors.success,
     },
-    checkmark: {
-        color: theme.colors.background,
-        fontSize: 12,
-        fontWeight: theme.fontWeight.bold,
-    },
     title: {
         flex: 1,
         fontSize: theme.fontSize.md,
@@ -168,12 +167,9 @@ const styles = StyleSheet.create({
         padding: theme.spacing.xs,
         marginLeft: theme.spacing.sm,
     },
-    actionIcon: {
-        fontSize: 18,
-        color: theme.colors.textMuted,
-    },
-    activeIcon: {
-        color: theme.colors.primary,
+    actionIconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     reminderContainer: {
         flexDirection: 'row',
@@ -188,11 +184,5 @@ const styles = StyleSheet.create({
     deleteButton: {
         padding: theme.spacing.xs,
         marginLeft: theme.spacing.sm,
-    },
-    deleteText: {
-        fontSize: 20,
-        color: theme.colors.textMuted,
-        fontWeight: theme.fontWeight.regular,
-        lineHeight: 20,
     },
 });
