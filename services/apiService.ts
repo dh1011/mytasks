@@ -1,6 +1,13 @@
 import { DatabaseConfig } from '../types/DatabaseConfig';
 import { Task } from '../types/Task';
 
+interface TaskRow {
+    id: string;
+    title: string;
+    completed: boolean;
+    created_at: string;
+}
+
 export class ApiService {
     private config: DatabaseConfig;
     private headers: HeadersInit;
@@ -56,7 +63,7 @@ export class ApiService {
         const data = await response.json();
 
         // Map snake_case DB fields to camelCase Task model
-        return data.map((row: any) => ({
+        return data.map((row: TaskRow) => ({
             id: row.id,
             title: row.title,
             completed: row.completed,

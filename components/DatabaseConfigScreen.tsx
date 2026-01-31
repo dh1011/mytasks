@@ -131,7 +131,7 @@ export function DatabaseConfigScreen({ onClose }: Props) {
                     autoCorrect={false}
                     secureTextEntry
                 />
-                <Text style={styles.hint}>The public 'anon' key for your project.</Text>
+                <Text style={styles.hint}>The public &apos;anon&apos; key for your project.</Text>
             </View>
 
             <TouchableOpacity

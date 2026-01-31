@@ -16,7 +16,7 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
-    const scaleAnim = React.useRef(new Animated.Value(1)).current;
+    const [scaleAnim] = React.useState(() => new Animated.Value(1));
 
     const handleToggle = () => {
         // Animate the press

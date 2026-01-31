@@ -20,7 +20,7 @@ export async function testDatabaseConnection(
     try {
         // Validate URL format
         new URL(config.apiUrl);
-    } catch (e) {
+    } catch {
         return { success: false, error: 'Invalid API URL format' };
     }
 

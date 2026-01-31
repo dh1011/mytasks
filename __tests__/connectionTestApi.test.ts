@@ -3,7 +3,7 @@ import { DatabaseConfig } from '../types/DatabaseConfig';
 
 // Mock global fetch
 const mockFetch = jest.fn();
-// @ts-ignore
+
 global.fetch = mockFetch;
 
 describe('Database Configuration Validation (PostgREST)', () => {
