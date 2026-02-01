@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   Text,
   LogBox,
+  FlatList,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,7 +24,7 @@ LogBox.ignoreLogs([
 ]);
 import { useTasks } from './hooks/useTasks';
 import { AddTaskForm } from './components/AddTaskForm';
-import { TaskList } from './components/TaskList';
+import { TaskItem } from './components/TaskItem';
 import { DatabaseConfigScreen } from './components/DatabaseConfigScreen';
 import { theme } from './styles/theme';
 
@@ -31,6 +32,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [activeTab, setActiveTab] = useState<'inbox' | 'reminders'>('inbox');
   const {
     tasks,
     isLoading,
@@ -40,14 +42,23 @@ export default function App() {
     deleteTask,
     clearCompleted,
     refresh,
+    inboxTasks,
+    reminderTasks,
+    completedTasks,
   } = useTasks();
+
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
   const handleCloseSettings = () => {
     setShowSettings(false);
     refresh();
   };
 
-  const completedCount = tasks.filter((t) => t.completed).length;
+  const completedCount = completedTasks.length;
+
+  const handleExpand = (id: string) => {
+    setExpandedTaskId(prevId => prevId === id ? null : id);
+  };
 
   if (isLoading) {
     return (
@@ -56,6 +67,9 @@ export default function App() {
       </SafeAreaView>
     );
   }
+
+  // Sections logic replaced by tabs
+  // const sections = []; ...
 
   return (
     <SafeAreaProvider>
@@ -88,20 +102,96 @@ export default function App() {
             <AddTaskForm onAdd={addTask} />
 
             <View style={styles.listContainer}>
-              <TaskList
-                tasks={
-                  tasks
-                    .filter(t => showCompleted ? true : !t.completed)
-                    .sort((a, b) => {
-                      // Sort by completed status (false first, true last)
-                      if (a.completed === b.completed) return 0;
-                      return a.completed ? 1 : -1;
-                    })
-                }
-                onToggle={toggleTask}
-                onUpdate={updateTask}
-                onDelete={deleteTask}
-              />
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  style={[styles.tabButton, activeTab === 'inbox' && styles.activeTabButton]}
+                  onPress={() => setActiveTab('inbox')}
+                >
+                  <Text style={[styles.tabText, activeTab === 'inbox' && styles.activeTabText]}>Inbox</Text>
+                  {inboxTasks.length > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{inboxTasks.length}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.tabButton, activeTab === 'reminders' && styles.activeTabButton]}
+                  onPress={() => setActiveTab('reminders')}
+                >
+                  <Text style={[styles.tabText, activeTab === 'reminders' && styles.activeTabText]}>Reminders</Text>
+                  {reminderTasks.length > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{reminderTasks.length}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.listContainer}>
+                {activeTab === 'inbox' ? (
+                  <FlatList
+                    data={[...inboxTasks, ...(showCompleted ? completedTasks : [])]}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                      <TaskItem
+                        task={item}
+                        onToggle={toggleTask}
+                        onUpdate={updateTask}
+                        onDelete={deleteTask}
+                        isExpanded={expandedTaskId === item.id}
+                        onExpand={() => handleExpand(item.id)}
+                      />
+                    )}
+                    ListEmptyComponent={
+                      <View style={styles.emptyContainer}>
+                        <View style={styles.emptyIconContainer}>
+                          <Feather name="inbox" size={32} color={theme.colors.textMuted} />
+                        </View>
+                        <Text style={styles.emptyTitle}>NO INBOX TASKS</Text>
+                        <Text style={styles.emptySubtitle}>
+                          Tasks without reminders appear here
+                        </Text>
+                      </View>
+                    }
+                    contentContainerStyle={[
+                      styles.listContent,
+                      inboxTasks.length === 0 && (!showCompleted || completedTasks.length === 0) && styles.listContentEmpty
+                    ]}
+                    showsVerticalScrollIndicator={false}
+                  />
+                ) : (
+                  <FlatList
+                    data={[...reminderTasks, ...(showCompleted ? completedTasks : [])]}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                      <TaskItem
+                        task={item}
+                        onToggle={toggleTask}
+                        onUpdate={updateTask}
+                        onDelete={deleteTask}
+                        isExpanded={expandedTaskId === item.id}
+                        onExpand={() => handleExpand(item.id)}
+                      />
+                    )}
+                    ListEmptyComponent={
+                      <View style={styles.emptyContainer}>
+                        <View style={styles.emptyIconContainer}>
+                          <Feather name="bell" size={32} color={theme.colors.textMuted} />
+                        </View>
+                        <Text style={styles.emptyTitle}>NO REMINDERS</Text>
+                        <Text style={styles.emptySubtitle}>
+                          Tasks with upcoming reminders appear here
+                        </Text>
+                      </View>
+                    }
+                    contentContainerStyle={[
+                      styles.listContent,
+                      reminderTasks.length === 0 && (!showCompleted || completedTasks.length === 0) && styles.listContentEmpty
+                    ]}
+                    showsVerticalScrollIndicator={false}
+                  />
+                )}
+              </View>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -239,5 +329,96 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
+  },
+  listContent: {
+    paddingBottom: theme.spacing.xl,
+  },
+  listContentEmpty: {
+    flexGrow: 1,
+  },
+  sectionHeader: {
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.colors.surface, // Sticky header bg
+    // or transparent if not sticky
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+  sectionHeaderText: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textMuted,
+    letterSpacing: 1.5,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTabButton: {
+    borderBottomColor: theme.colors.primary,
+  },
+  tabText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.textMuted,
+    fontWeight: theme.fontWeight.medium,
+  },
+  activeTabText: {
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.bold,
+  },
+  badge: {
+    marginLeft: theme.spacing.xs,
+    backgroundColor: theme.colors.surfaceElevated,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: theme.colors.text,
+    fontWeight: theme.fontWeight.bold,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    marginTop: 60,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+
+  emptyTitle: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.text,
+    letterSpacing: theme.letterSpacing.wider,
+    marginBottom: theme.spacing.sm,
+  },
+  emptySubtitle: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textMuted,
+    textAlign: 'center',
+    letterSpacing: theme.letterSpacing.normal,
   },
 });
