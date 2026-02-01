@@ -3,7 +3,6 @@ import { Feather } from '@expo/vector-icons';
 import {
   View,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,8 +12,15 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Text,
+  LogBox,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
+// Ignore specific warnings
+LogBox.ignoreLogs([
+  'expo-notifications: Android Push notifications',
+  '`expo-notifications` functionality is not fully supported',
+]);
 import { useTasks } from './hooks/useTasks';
 import { AddTaskForm } from './components/AddTaskForm';
 import { TaskList } from './components/TaskList';

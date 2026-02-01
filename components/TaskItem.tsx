@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     StyleSheet,
     Animated,
+    Alert,
 } from 'react-native';
 import { Task } from '../types/Task';
 import { theme } from '../styles/theme';
@@ -65,21 +66,41 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskItemProps) 
         onToggle(task.id);
     };
 
+    const handleDelete = () => {
+        Alert.alert(
+            "Delete Task",
+            "Are you sure you want to delete this task?",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                },
+                {
+                    text: "Delete",
+                    onPress: () => onDelete(task.id),
+                    style: "destructive"
+                }
+            ]
+        );
+    };
+
     return (
         <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-            <TouchableOpacity
-                style={styles.content}
-                onPress={handleToggle}
-                activeOpacity={0.7}
-            >
+            <View style={styles.content}>
                 {/* Linear iconography - thin outline checkbox */}
-                <View style={[styles.checkbox, task.completed && styles.checkboxCompleted]}>
-                    {task.completed && <Feather name="check" size={12} color={theme.colors.background} strokeWidth={4} />}
-                </View>
+                <TouchableOpacity
+                    onPress={handleToggle}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <View style={[styles.checkbox, task.completed && styles.checkboxCompleted]}>
+                        {task.completed && <Feather name="check" size={12} color={theme.colors.background} strokeWidth={4} />}
+                    </View>
+                </TouchableOpacity>
                 <Text style={[styles.title, task.completed && styles.titleCompleted]}>
                     {task.title}
                 </Text>
-            </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
                 style={styles.actionButton}
@@ -112,7 +133,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete }: TaskItemProps) 
             )}
             <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => onDelete(task.id)}
+                onPress={handleDelete}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
                 <Feather name="x" size={20} color={theme.colors.textMuted} />
