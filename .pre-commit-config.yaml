@@ -1,0 +1,35 @@
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.1
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: lint
+        name: Lint
+        entry: npm run lint
+        language: system
+        files: \.(js|jsx|ts|tsx)$
+        pass_filenames: false
+
+      - id: test
+        name: Test
+        entry: npm run test
+        language: system
+        files: \.(js|jsx|ts|tsx)$
+        pass_filenames: false
+
+      - id: type-check
+        name: Type Check
+        entry: npx tsc --noEmit
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      - id: security-audit
+        name: Security Audit
+        entry: npm audit --audit-level=high
+        language: system
+        files: package-lock\.json$
+        pass_filenames: false

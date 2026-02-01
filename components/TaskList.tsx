@@ -13,6 +13,12 @@ interface TaskListProps {
 }
 
 export function TaskList({ tasks, onToggle, onUpdate, onDelete }: TaskListProps) {
+    const [expandedTaskId, setExpandedTaskId] = React.useState<string | null>(null);
+
+    const handleExpand = (id: string) => {
+        setExpandedTaskId(prevId => prevId === id ? null : id);
+    };
+
     if (tasks.length === 0) {
         return (
             <View style={styles.emptyContainer}>
@@ -37,6 +43,8 @@ export function TaskList({ tasks, onToggle, onUpdate, onDelete }: TaskListProps)
                     onToggle={onToggle}
                     onUpdate={onUpdate}
                     onDelete={onDelete}
+                    isExpanded={expandedTaskId === item.id}
+                    onExpand={() => handleExpand(item.id)}
                 />
             )}
             contentContainerStyle={styles.listContent}

@@ -60,4 +60,54 @@ describe('ApiService', () => {
         await expect(apiService.updateTask('1', { reminderAt: new Date() }))
             .rejects.toThrow('Failed to update task: 400 Column reminder_at does not exist');
     });
+
+    it('updateTask: persists repeat field', async () => {
+        const mockTask = {
+            id: '1',
+            title: 'Repeat Task',
+            completed: false,
+            created_at: '2023-01-01T00:00:00Z',
+            reminder_at: '2025-01-01T00:00:00Z',
+            repeat: 'daily'
+        };
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            json: async () => [mockTask],
+        });
+
+        const updated = await apiService.updateTask('1', { repeat: 'daily' });
+        expect(updated.repeat).toBe('daily');
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('tasks?id=eq.1'),
+            expect.objectContaining({
+                method: 'PATCH',
+                body: expect.stringContaining('"repeat":"daily"')
+            })
+        );
+    });
+
+    it('updateTask: persists monthly repeat field', async () => {
+        const mockTask = {
+            id: '1',
+            title: 'Monthly Task',
+            completed: false,
+            created_at: '2023-01-01T00:00:00Z',
+            reminder_at: '2025-01-01T00:00:00Z',
+            repeat: 'monthly'
+        };
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            json: async () => [mockTask],
+        });
+
+        const updated = await apiService.updateTask('1', { repeat: 'monthly' });
+        expect(updated.repeat).toBe('monthly');
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('tasks?id=eq.1'),
+            expect.objectContaining({
+                method: 'PATCH',
+                body: expect.stringContaining('"repeat":"monthly"')
+            })
+        );
+    });
 });

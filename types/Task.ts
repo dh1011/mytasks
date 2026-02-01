@@ -4,4 +4,6 @@ export interface Task {
   completed: boolean;
   createdAt: Date;
   reminderAt?: Date;
+  repeat?: 'daily' | 'weekly' | 'monthly' | 'none';
+  notificationId?: string;
 }
