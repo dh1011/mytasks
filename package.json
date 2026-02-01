@@ -9,7 +9,6 @@
     "web": "expo start --web",
     "test": "npm run test:unit",
     "test:unit": "jest",
-    "test:integration": "npx tsx scripts/test-postgres.ts",
     "lint": "eslint ."
   },
   "jest": {
