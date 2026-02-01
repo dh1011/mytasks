@@ -122,10 +122,25 @@ export function useTasks() {
     const pendingTasks = tasks.filter((task) => !task.completed);
     const completedTasks = tasks.filter((task) => task.completed);
 
+    // Reminder tasks: Not completed, has reminder. Sort by reminder time (soonest first).
+    const reminderTasks = tasks
+        .filter((task) => !task.completed && task.reminderAt)
+        .sort((a, b) => {
+            if (!a.reminderAt || !b.reminderAt) return 0;
+            return a.reminderAt.getTime() - b.reminderAt.getTime();
+        });
+
+    // Inbox tasks: Not completed, no reminder. Sort by creation time (newest first).
+    const inboxTasks = tasks
+        .filter((task) => !task.completed && !task.reminderAt)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
     return {
         tasks,
         pendingTasks,
         completedTasks,
+        inboxTasks,
+        reminderTasks,
         isLoading,
         addTask,
         updateTask,
