@@ -38,38 +38,40 @@ export class NotificationService {
         return true;
     }
 
-    static async scheduleNotification(id: string, title: string, body: string, triggerDate: Date) {
-        // Cancel any existing notification for this task ID (if we assume 1-to-1 mapping via some convention, 
-        // or effectively we just schedule a new one. Since we don't store notification IDs in DB yet, 
-        // we might not actully cancel old ones unless we assume a clean slate or use the ID as identifier if Expo allows).
-        // Expo doesn't let us force the ID easily without keeping track. 
-        // For this MVP, we will mostly just schedule. 
-        // Ideally we would cancel by category or custom identifier if supported.
+    static async scheduleNotification(id: string, title: string, body: string, triggerDate: Date, repeat: 'daily' | 'weekly' | 'monthly' | 'none' = 'none') {
 
-        // However, we CAN use the task ID as the identifier if we want to be able to cancel it later.
-        // Notifications.scheduleNotificationAsync returns the identifier.
-        // We can't easily force the identifier to be the task ID directly as it's a UUID and Expo might generate its own.
-        // But let's try to cancel any potential duplicates if we stored them? 
-        // Given we don't have local persistent storage for notification IDs linked to tasks, 
-        // we will implement a "best effort" or just schedule new ones.
-        // Limitation: If user updates time, old notification might still fire if we don't cancel it.
-        // Workaround: We could cancel all notifications and reschedule? No, too heavy.
+        let notificationTrigger: any;
 
-        // Better approach: We will just schedule it. 
-        // If we wanted to be robust, we'd store `notification_id` in the DB or AsyncStorage.
-        // For this task, let's keep it simple as per requirements.
+        if (repeat === 'none') {
+            notificationTrigger = {
+                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                date: triggerDate,
+            };
+        } else {
+            // For recurring, we use calendar trigger
+            notificationTrigger = {
+                type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+                hour: triggerDate.getHours(),
+                minute: triggerDate.getMinutes(),
+                repeats: true,
+            };
+            if (repeat === 'weekly') {
+                notificationTrigger.weekday = triggerDate.getDay() + 1;
+            } else if (repeat === 'monthly') {
+                notificationTrigger.day = triggerDate.getDate();
+            }
+        }
 
-        await Notifications.scheduleNotificationAsync({
+        const identifier = await Notifications.scheduleNotificationAsync({
             content: {
                 title,
                 body,
                 data: { taskId: id },
             },
-            trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.DATE,
-                date: triggerDate,
-            },
+            trigger: notificationTrigger,
         });
+
+        return identifier;
     }
 
     static async cancelNotification(notificationId: string) {

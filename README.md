@@ -90,7 +90,8 @@ If you prefer to use Supabase, you need to manually create the table and policie
        title TEXT NOT NULL,
        completed BOOLEAN NOT NULL DEFAULT FALSE,
        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-       reminder_at TIMESTAMPTZ
+       reminder_at TIMESTAMPTZ,
+       repeat TEXT CHECK (repeat IN ('daily', 'weekly', 'none')) DEFAULT 'none'
    );
 
    -- 2. Create the index

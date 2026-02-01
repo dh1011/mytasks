@@ -7,6 +7,7 @@ interface TaskRow {
     completed: boolean;
     created_at: string;
     reminder_at: string | null;
+    repeat: 'daily' | 'weekly' | 'monthly' | 'none' | null;
 }
 
 export class ApiService {
@@ -70,14 +71,14 @@ export class ApiService {
             completed: row.completed,
             createdAt: new Date(row.created_at),
             reminderAt: row.reminder_at ? new Date(row.reminder_at) : undefined,
+            repeat: row.repeat || 'none',
         }));
     }
-
     async createTask(title: string): Promise<Task> {
         const response = await fetch(this.getUrl('tasks'), {
             method: 'POST',
             headers: this.headers,
-            body: JSON.stringify({ title, completed: false }),
+            body: JSON.stringify({ title, completed: false, repeat: 'none' }),
         });
 
         if (!response.ok) {
@@ -93,6 +94,7 @@ export class ApiService {
             completed: row.completed,
             createdAt: new Date(row.created_at),
             reminderAt: row.reminder_at ? new Date(row.reminder_at) : undefined,
+            repeat: row.repeat || 'none',
         };
     }
 
@@ -101,6 +103,7 @@ export class ApiService {
         if (updates.title !== undefined) payload.title = updates.title;
         if (updates.completed !== undefined) payload.completed = updates.completed;
         if (updates.reminderAt !== undefined) payload.reminder_at = updates.reminderAt ? updates.reminderAt.toISOString() : null;
+        if (updates.repeat !== undefined) payload.repeat = updates.repeat;
 
         const response = await fetch(this.getUrl(`tasks?id=eq.${id}`), {
             method: 'PATCH',
@@ -115,7 +118,11 @@ export class ApiService {
         }
 
         const data = await response.json();
-        const row = data[0];
+        const row = data?.[0];
+
+        if (!row) {
+            throw new Error('Update returned no data (task not found or RLS policy)');
+        }
 
         return {
             id: row.id,
@@ -123,6 +130,7 @@ export class ApiService {
             completed: row.completed,
             createdAt: new Date(row.created_at),
             reminderAt: row.reminder_at ? new Date(row.reminder_at) : undefined,
+            repeat: row.repeat || 'none', // Handle repeat if it exists
         };
     }
 

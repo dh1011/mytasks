@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     title TEXT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    reminder_at TIMESTAMPTZ
+    reminder_at TIMESTAMPTZ,
+    repeat TEXT CHECK (repeat IN ('daily', 'weekly', 'monthly', 'none')) DEFAULT 'none'
 );
 
 -- Create index for ordering by created_at

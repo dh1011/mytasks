@@ -11,6 +11,7 @@ The `Task` object must strictly adhere to the following schema:
 - **`completed`**: Boolean. Defaults to `false`.
 - **`createdAt`**: ISO-8601 Date String or Timestamp.
 - **`reminderAt`**: ISO-8601 Date String or Timestamp (Optional). The UTC time when a notification should trigger.
+- **`repeat`**: String (Optional). One of 'daily', 'weekly', 'none'. Defaults to 'none'.
 
 ## 2. API / Data Service Methods
 
