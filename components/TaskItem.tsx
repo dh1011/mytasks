@@ -175,7 +175,6 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
                     </Text>
                     {task.reminderAt && (
                         <View style={styles.reminderIndicator}>
-                            <Feather name="clock" size={12} color={theme.colors.primary} style={styles.reminderIcon} />
                             <Text style={styles.reminderText}>
                                 {formatReminder(new Date(task.reminderAt))}
                             </Text>
@@ -550,16 +549,11 @@ const styles = StyleSheet.create({
     reminderIndicator: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 4,
-    },
-    reminderIcon: {
-        marginRight: 4,
-        opacity: 0.8,
+        marginTop: 2,
     },
     reminderText: {
-        fontSize: theme.fontSize.sm,
-        color: theme.colors.primary,
-        fontWeight: theme.fontWeight.medium,
-        opacity: 0.8,
+        fontSize: theme.fontSize.xs,
+        color: theme.colors.textMuted,
+        fontWeight: theme.fontWeight.regular,
     },
 });
