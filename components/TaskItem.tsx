@@ -8,7 +8,8 @@ import {
     Animated,
     Alert,
     Modal,
-    Pressable
+    Pressable,
+    TextInput
 } from 'react-native';
 import { Task } from '../types/Task';
 import { theme } from '../styles/theme';
@@ -28,6 +29,13 @@ import { NotificationService } from '../services/NotificationService';
 export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExpand }: TaskItemProps) {
     const [scaleAnim] = React.useState(() => new Animated.Value(1));
     const [showReminderModal, setShowReminderModal] = useState(false);
+
+    const [tempTitle, setTempTitle] = useState(task.title);
+
+    // Sync tempTitle if task.title changes externally or via save
+    React.useEffect(() => {
+        setTempTitle(task.title);
+    }, [task.title]);
 
     // Temporary state for the modal
     const [tempDate, setTempDate] = useState<Date>(new Date());
@@ -170,10 +178,26 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
                     onPress={handleExpand}
                     activeOpacity={1}
                 >
-                    <Text style={[styles.title, task.completed && styles.titleCompleted]}>
-                        {task.title}
-                    </Text>
-                    {task.reminderAt && (
+                    {isExpanded ? (
+                        <TextInput
+                            style={[
+                                styles.titleInput,
+                                task.completed && styles.titleCompleted
+                            ]}
+                            value={tempTitle}
+                            onChangeText={setTempTitle}
+                            onEndEditing={() => onUpdate(task.id, { title: tempTitle.trim() })}
+                            onSubmitEditing={() => onUpdate(task.id, { title: tempTitle.trim() })}
+                            blurOnSubmit={true}
+                            autoFocus={true} // Optional: focus immediately when expanded
+                            multiline
+                        />
+                    ) : (
+                        <Text style={[styles.title, task.completed && styles.titleCompleted]}>
+                            {task.title}
+                        </Text>
+                    )}
+                    {task.reminderAt && !isExpanded && (
                         <View style={styles.reminderIndicator}>
                             <Text style={styles.reminderText}>
                                 {formatReminder(new Date(task.reminderAt))}
@@ -392,6 +416,12 @@ const styles = StyleSheet.create({
     titleCompleted: {
         color: theme.colors.textMuted,
         textDecorationLine: 'line-through',
+    },
+    titleInput: {
+        fontSize: theme.fontSize.md,
+        color: theme.colors.text,
+        fontWeight: theme.fontWeight.regular,
+        padding: 0, // Align with Text
     },
     expandedControls: {
         flexDirection: 'row',
