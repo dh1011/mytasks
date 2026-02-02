@@ -42,15 +42,12 @@ export function useTasks() {
         }
 
         const api = new ApiService(config);
-        setIsLoading(true);
         try {
             const newTask = await api.createTask(title);
             setTasks((prev) => [newTask, ...prev]);
         } catch (error) {
             console.error('Error adding task:', error);
             alert('Failed to add task');
-        } finally {
-            setIsLoading(false);
         }
     }, [config]);
 
