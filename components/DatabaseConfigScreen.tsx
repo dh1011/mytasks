@@ -180,7 +180,6 @@ export function DatabaseConfigScreen({ onClose }: Props) {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         backgroundColor: theme.colors.surface,
     },
     header: {
@@ -204,7 +203,6 @@ const styles = StyleSheet.create({
         color: theme.colors.text,
     },
     content: {
-        flex: 1,
         padding: theme.spacing.lg,
     },
     description: {

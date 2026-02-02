@@ -8,9 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Modal,
   Alert,
-  TouchableWithoutFeedback,
   Text,
   LogBox,
   FlatList,
@@ -180,101 +178,80 @@ export default function App() {
               </View>
             </View>
           </View>
-
-
-          {/* Bottom Bar */}
-          <View style={styles.bottomBar}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => setShowSettings(true)}
-            >
-              <Feather name="settings" size={24} color={theme.colors.textMuted} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.plusButton}
-              onPress={() => setShowAddTask(!showAddTask)}
-            >
-              <Feather name="plus" size={32} color={theme.colors.surface} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => setShowMenu(true)}
-            >
-              <Feather name="menu" size={24} color={theme.colors.textMuted} />
-            </TouchableOpacity>
-          </View>
         </KeyboardAvoidingView>
 
-        {/* Settings Modal */}
-        <Modal
-          visible={showSettings}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={handleCloseSettings}
-        >
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={handleCloseSettings}
-          >
-            <TouchableWithoutFeedback>
-              <View style={styles.bottomSheet}>
-                <DatabaseConfigScreen onClose={handleCloseSettings} />
-              </View>
-            </TouchableWithoutFeedback>
-          </TouchableOpacity>
-        </Modal>
+        {/* Settings Panel */}
+        {showSettings && (
+          <View style={styles.slidePanel}>
+            <DatabaseConfigScreen onClose={handleCloseSettings} />
+          </View>
+        )}
 
-        {/* Overflow Menu Modal */}
-        <Modal
-          visible={showMenu}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowMenu(false)}
-        >
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => setShowMenu(false)}
-          >
-            <TouchableWithoutFeedback>
-              <View style={styles.bottomSheet}>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => {
-                    setShowCompleted(!showCompleted);
-                    setShowMenu(false);
-                  }}
-                >
-                  <Text style={styles.menuText}>
-                    {showCompleted ? "Hide Completed" : "Show Completed"}
-                  </Text>
-                </TouchableOpacity>
+        {/* Menu Panel */}
+        {showMenu && (
+          <View style={styles.slidePanel}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowCompleted(!showCompleted);
+                setShowMenu(false);
+              }}
+            >
+              <Text style={styles.menuText}>
+                {showCompleted ? "Hide Completed" : "Show Completed"}
+              </Text>
+            </TouchableOpacity>
 
-                {completedCount > 0 && (
-                  <TouchableOpacity
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setShowMenu(false);
-                      Alert.alert(
-                        "Delete Completed",
-                        "Are you sure you want to delete all completed tasks?",
-                        [
-                          { text: "Cancel", style: "cancel" },
-                          { text: "Delete", onPress: clearCompleted, style: "destructive" }
-                        ]
-                      );
-                    }}
-                  >
-                    <Text style={styles.menuText}>Delete Completed</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </TouchableWithoutFeedback>
+            {completedCount > 0 && (
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setShowMenu(false);
+                  Alert.alert(
+                    "Delete Completed",
+                    "Are you sure you want to delete all completed tasks?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Delete", onPress: clearCompleted, style: "destructive" }
+                    ]
+                  );
+                }}
+              >
+                <Text style={styles.menuText}>Delete Completed</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Bottom Bar */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              setShowSettings(!showSettings);
+              setShowMenu(false);
+            }}
+          >
+            <Feather name="settings" size={24} color={theme.colors.textMuted} />
           </TouchableOpacity>
-        </Modal>
+
+          <TouchableOpacity
+            style={styles.plusButton}
+            onPress={() => setShowAddTask(!showAddTask)}
+          >
+            <Feather name="plus" size={24} color={theme.colors.surface} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              setShowMenu(!showMenu);
+              setShowSettings(false);
+            }}
+          >
+            <Feather name="menu" size={24} color={theme.colors.textMuted} />
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </SafeAreaProvider >
   );
@@ -323,48 +300,23 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.borderLight,
   },
   plusButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: theme.colors.primary,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.textMuted,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -32, // Floating effect
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  bottomSheet: {
+  slidePanel: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderTopLeftRadius: theme.borderRadius.lg,
-    borderTopRightRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    paddingBottom: 40, // Safe area padding
-    minHeight: 200,
-    // Shadow
-    ...Platform.select({
-      web: {
-        boxShadow: '0px -4px 12px rgba(0, 0, 0, 0.1)',
-      },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 8,
-      },
-    }),
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
   },
   menuItem: {
     paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
   },
   menuText: {
     fontSize: theme.fontSize.md,
