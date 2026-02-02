@@ -36,6 +36,31 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
     // Check if task has a future reminder
     const hasReminder = task.reminderAt && new Date(task.reminderAt) > new Date();
 
+    const formatReminder = (date: Date) => {
+        const now = new Date();
+        const isToday = date.getDate() === now.getDate() &&
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear();
+
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (isToday) {
+            return timeStr;
+        }
+
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        const isTomorrow = date.getDate() === tomorrow.getDate() &&
+            date.getMonth() === tomorrow.getMonth() &&
+            date.getFullYear() === tomorrow.getFullYear();
+
+        if (isTomorrow) {
+            return `Tomorrow, ${timeStr}`;
+        }
+
+        return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${timeStr}`;
+    };
+
     const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
 
     const handleExpand = () => {
@@ -148,12 +173,13 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
                     <Text style={[styles.title, task.completed && styles.titleCompleted]}>
                         {task.title}
                     </Text>
-                    {/* Show small indicator if reminder is set, but only if NOT expanded (optional, or per requirement) 
-                         The user said "notification or reminder will be not shown unless user click on a task".
-                         So maybe even value is hidden. I'll stick to strictly hidden until click.
-                         So when collapsed: nothing.
-                         When expanded: show controls.
-                     */}
+                    {task.reminderAt && (
+                        <View style={styles.reminderIndicator}>
+                            <Text style={styles.reminderText}>
+                                {formatReminder(new Date(task.reminderAt))}
+                            </Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
             </View>
 
@@ -519,5 +545,15 @@ const styles = StyleSheet.create({
     modalButtonTextSecondary: {
         color: theme.colors.textSecondary,
         fontSize: theme.fontSize.md,
+    },
+    reminderIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 2,
+    },
+    reminderText: {
+        fontSize: theme.fontSize.xs,
+        color: theme.colors.textMuted,
+        fontWeight: theme.fontWeight.regular,
     },
 });
