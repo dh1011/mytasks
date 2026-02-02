@@ -8,7 +8,6 @@ import {
     Animated,
     Alert,
     Modal,
-    Platform,
     Pressable
 } from 'react-native';
 import { Task } from '../types/Task';
@@ -23,7 +22,7 @@ interface TaskItemProps {
     onExpand: () => void;
 }
 
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { NotificationService } from '../services/NotificationService';
 
 export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExpand }: TaskItemProps) {
@@ -36,6 +35,8 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
 
     // Check if task has a future reminder
     const hasReminder = task.reminderAt && new Date(task.reminderAt) > new Date();
+
+    const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
 
     const handleExpand = () => {
         onExpand();
@@ -51,6 +52,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
         // Initialize with existing values or defaults
         setTempDate(task.reminderAt ? new Date(task.reminderAt) : new Date());
         setTempRepeat(task.repeat || 'none');
+        setPickerMode('date'); // Always start with date
         setShowReminderModal(true);
     };
 
@@ -199,18 +201,60 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
 
                         {/* Date & Time Picker */}
                         <View style={styles.pickerContainer}>
-                            <Text style={styles.label}>Date & Time</Text>
-                            <DateTimePicker
-                                testID="dateTimePicker"
-                                value={tempDate}
-                                mode="datetime"
-                                is24Hour={true}
-                                display="spinner"
-                                onChange={(event, date) => {
-                                    if (date) setTempDate(date);
-                                }}
-                                style={{ height: 120 }} // Force height for spinner
-                            />
+                            <View style={styles.pickerHeader}>
+                                <Text style={styles.label}>
+                                    {pickerMode === 'date' ? 'Date' : 'Time'}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={() => setPickerMode(pickerMode === 'date' ? 'time' : 'date')}
+                                    style={styles.switchButton}
+                                >
+                                    <Feather
+                                        name={pickerMode === 'date' ? 'clock' : 'calendar'}
+                                        size={14}
+                                        color={theme.colors.primary}
+                                    />
+                                    <Text style={styles.switchButtonText}>
+                                        {pickerMode === 'date' ? 'Set Time' : 'Set Date'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {pickerMode === 'date' ? (
+                                <DateTimePicker
+                                    testID="datePicker"
+                                    value={tempDate}
+                                    mode="date"
+                                    display="inline"
+                                    onChange={(event, date) => {
+                                        if (date) {
+                                            const newDate = new Date(tempDate);
+                                            newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                                            setTempDate(newDate);
+                                        }
+                                    }}
+                                    style={styles.calendarPicker}
+                                    themeVariant="dark"
+                                    accentColor={theme.colors.primary}
+                                />
+                            ) : (
+                                <DateTimePicker
+                                    testID="timePicker"
+                                    value={tempDate}
+                                    mode="time"
+                                    is24Hour={true}
+                                    display="spinner"
+                                    onChange={(event, date) => {
+                                        if (date) {
+                                            const newDate = new Date(tempDate);
+                                            newDate.setHours(date.getHours(), date.getMinutes());
+                                            setTempDate(newDate);
+                                        }
+                                    }}
+                                    style={styles.timePicker}
+                                    textColor={theme.colors.text}
+                                />
+                            )}
                         </View>
 
                         {/* Repeat Options */}
@@ -393,12 +437,34 @@ const styles = StyleSheet.create({
         marginTop: theme.spacing.sm,
     },
     pickerContainer: {
-        alignItems: 'center',
         marginBottom: theme.spacing.md,
-        // Ensure picker is visible
+    },
+    pickerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.sm,
+        marginTop: theme.spacing.sm,
+    },
+    switchButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: theme.spacing.xs,
+    },
+    switchButtonText: {
+        marginLeft: theme.spacing.xs,
+        fontSize: theme.fontSize.sm,
+        color: theme.colors.primary,
+        fontWeight: theme.fontWeight.medium,
+    },
+    calendarPicker: {
+        width: 320,
+        height: 320,
+        alignSelf: 'center',
+    },
+    timePicker: {
         height: 150,
-        justifyContent: 'center',
-        overflow: 'hidden'
+        width: '100%',
     },
     repeatContainer: {
         marginBottom: theme.spacing.lg,
