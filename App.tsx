@@ -32,6 +32,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
   const [activeTab, setActiveTab] = useState<'inbox' | 'reminders'>('inbox');
   const {
     isLoading,
@@ -80,25 +81,11 @@ export default function App() {
         >
           {/* Main Content Container */}
           <View style={styles.contentContainer}>
-            <View style={styles.header}>
-              <View style={styles.headerTop}>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => setShowSettings(true)}
-                >
-                  <Feather name="settings" size={20} color={theme.colors.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => setShowMenu(true)}
-                >
-                  <Feather name="more-vertical" size={20} color={theme.colors.textMuted} />
-                </TouchableOpacity>
+            {showAddTask && (
+              <View style={styles.addTaskWrapper}>
+                <AddTaskForm onAdd={addTask} />
               </View>
-            </View>
-
-            <AddTaskForm onAdd={addTask} />
+            )}
 
             <View style={styles.listContainer}>
               <View style={styles.tabContainer}>
@@ -193,28 +180,67 @@ export default function App() {
               </View>
             </View>
           </View>
+
+
+          {/* Bottom Bar */}
+          <View style={styles.bottomBar}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => setShowSettings(true)}
+            >
+              <Feather name="settings" size={24} color={theme.colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.plusButton}
+              onPress={() => setShowAddTask(!showAddTask)}
+            >
+              <Feather name="plus" size={32} color={theme.colors.surface} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => setShowMenu(true)}
+            >
+              <Feather name="menu" size={24} color={theme.colors.textMuted} />
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
 
         {/* Settings Modal */}
         <Modal
           visible={showSettings}
+          transparent={true}
           animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setShowSettings(false)}
+          onRequestClose={handleCloseSettings}
         >
-          <DatabaseConfigScreen onClose={handleCloseSettings} />
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={handleCloseSettings}
+          >
+            <TouchableWithoutFeedback>
+              <View style={styles.bottomSheet}>
+                <DatabaseConfigScreen onClose={handleCloseSettings} />
+              </View>
+            </TouchableWithoutFeedback>
+          </TouchableOpacity>
         </Modal>
 
         {/* Overflow Menu Modal */}
         <Modal
           visible={showMenu}
           transparent={true}
-          animationType="fade"
+          animationType="slide"
           onRequestClose={() => setShowMenu(false)}
         >
-          <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
-            <View style={styles.menuOverlay}>
-              <View style={styles.menuContainer}>
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowMenu(false)}
+          >
+            <TouchableWithoutFeedback>
+              <View style={styles.bottomSheet}>
                 <TouchableOpacity
                   style={styles.menuItem}
                   onPress={() => {
@@ -246,11 +272,11 @@ export default function App() {
                   </TouchableOpacity>
                 )}
               </View>
-            </View>
-          </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback>
+          </TouchableOpacity>
         </Modal>
       </SafeAreaView>
-    </SafeAreaProvider>
+    </SafeAreaProvider >
   );
 }
 
@@ -276,14 +302,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderLight,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: theme.spacing.md,
   },
   iconButton: {
     width: 32,
@@ -291,32 +309,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  menuOverlay: {
+  addTaskWrapper: {
+    marginBottom: theme.spacing.md,
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
+  },
+  plusButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -32, // Floating effect
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-  menuContainer: {
-    position: 'absolute',
-    top: 60, // approximate header height + spacing
-    right: theme.spacing.lg,
+  bottomSheet: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.sm,
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderTopRightRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    paddingBottom: 40, // Safe area padding
+    minHeight: 200,
     // Shadow
     ...Platform.select({
       web: {
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.5)',
+        boxShadow: '0px -4px 12px rgba(0, 0, 0, 0.1)',
       },
       default: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.5,
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
         shadowRadius: 12,
         elevation: 8,
       },
     }),
-    minWidth: 180,
-    zIndex: 1000,
   },
   menuItem: {
     paddingVertical: theme.spacing.md,
