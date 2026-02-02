@@ -212,7 +212,7 @@ export default function App() {
                     "Are you sure you want to delete all completed tasks?",
                     [
                       { text: "Cancel", style: "cancel" },
-                      { text: "Delete", onPress: clearCompleted, style: "destructive" }
+                      { text: "Delete", onPress: clearCompleted }
                     ]
                   );
                 }}

@@ -152,7 +152,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
             "Are you sure you want to delete this task?",
             [
                 { text: "Cancel", style: "cancel" },
-                { text: "Delete", onPress: () => onDelete(task.id), style: "destructive" }
+                { text: "Delete", onPress: () => onDelete(task.id) }
             ]
         );
     };
