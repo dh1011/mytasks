@@ -187,9 +187,12 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
                             value={tempTitle}
                             onChangeText={setTempTitle}
                             onEndEditing={() => onUpdate(task.id, { title: tempTitle.trim() })}
-                            onSubmitEditing={() => onUpdate(task.id, { title: tempTitle.trim() })}
+                            onSubmitEditing={() => {
+                                onUpdate(task.id, { title: tempTitle.trim() });
+                                onExpand();
+                            }}
                             blurOnSubmit={true}
-                            autoFocus={true} // Optional: focus immediately when expanded
+                            autoFocus={true}
                             multiline
                         />
                     ) : (

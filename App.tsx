@@ -12,6 +12,7 @@ import {
   Text,
   LogBox,
   FlatList,
+  Pressable,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -111,7 +112,7 @@ export default function App() {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.listContainer}>
+              <Pressable style={styles.listContainer} onPress={() => setExpandedTaskId(null)}>
                 {activeTab === 'inbox' ? (
                   <FlatList
                     data={[...inboxTasks, ...(showCompleted ? completedTasks : [])]}
@@ -127,7 +128,7 @@ export default function App() {
                       />
                     )}
                     ListEmptyComponent={
-                      <View style={styles.emptyContainer}>
+                      <Pressable style={styles.emptyContainer} onPress={() => setExpandedTaskId(null)}>
                         <View style={styles.emptyIconContainer}>
                           <Feather name="inbox" size={32} color={theme.colors.textMuted} />
                         </View>
@@ -135,7 +136,7 @@ export default function App() {
                         <Text style={styles.emptySubtitle}>
                           Tasks without reminders appear here
                         </Text>
-                      </View>
+                      </Pressable>
                     }
                     contentContainerStyle={[
                       styles.listContent,
@@ -158,7 +159,7 @@ export default function App() {
                       />
                     )}
                     ListEmptyComponent={
-                      <View style={styles.emptyContainer}>
+                      <Pressable style={styles.emptyContainer} onPress={() => setExpandedTaskId(null)}>
                         <View style={styles.emptyIconContainer}>
                           <Feather name="bell" size={32} color={theme.colors.textMuted} />
                         </View>
@@ -166,7 +167,7 @@ export default function App() {
                         <Text style={styles.emptySubtitle}>
                           Tasks with upcoming reminders appear here
                         </Text>
-                      </View>
+                      </Pressable>
                     }
                     contentContainerStyle={[
                       styles.listContent,
@@ -175,7 +176,7 @@ export default function App() {
                     showsVerticalScrollIndicator={false}
                   />
                 )}
-              </View>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>
