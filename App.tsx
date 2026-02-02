@@ -34,7 +34,6 @@ export default function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [activeTab, setActiveTab] = useState<'inbox' | 'reminders'>('inbox');
   const {
-    tasks,
     isLoading,
     addTask,
     updateTask,

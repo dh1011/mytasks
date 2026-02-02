@@ -40,7 +40,7 @@ export class NotificationService {
 
     static async scheduleNotification(id: string, title: string, body: string, triggerDate: Date, repeat: 'daily' | 'weekly' | 'monthly' | 'none' = 'none') {
 
-        let notificationTrigger: any;
+        let notificationTrigger: Notifications.NotificationTriggerInput;
 
         if (repeat === 'none') {
             notificationTrigger = {
