@@ -8,12 +8,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Modal,
   Alert,
-  TouchableWithoutFeedback,
   Text,
   LogBox,
   FlatList,
+  Pressable,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -32,6 +31,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
   const [activeTab, setActiveTab] = useState<'inbox' | 'reminders'>('inbox');
   const {
     isLoading,
@@ -80,25 +80,11 @@ export default function App() {
         >
           {/* Main Content Container */}
           <View style={styles.contentContainer}>
-            <View style={styles.header}>
-              <View style={styles.headerTop}>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => setShowSettings(true)}
-                >
-                  <Feather name="settings" size={20} color={theme.colors.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => setShowMenu(true)}
-                >
-                  <Feather name="more-vertical" size={20} color={theme.colors.textMuted} />
-                </TouchableOpacity>
+            {showAddTask && (
+              <View style={styles.addTaskWrapper}>
+                <AddTaskForm onAdd={addTask} />
               </View>
-            </View>
-
-            <AddTaskForm onAdd={addTask} />
+            )}
 
             <View style={styles.listContainer}>
               <View style={styles.tabContainer}>
@@ -126,7 +112,7 @@ export default function App() {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.listContainer}>
+              <Pressable style={styles.listContainer} onPress={() => setExpandedTaskId(null)}>
                 {activeTab === 'inbox' ? (
                   <FlatList
                     data={[...inboxTasks, ...(showCompleted ? completedTasks : [])]}
@@ -142,7 +128,7 @@ export default function App() {
                       />
                     )}
                     ListEmptyComponent={
-                      <View style={styles.emptyContainer}>
+                      <Pressable style={styles.emptyContainer} onPress={() => setExpandedTaskId(null)}>
                         <View style={styles.emptyIconContainer}>
                           <Feather name="inbox" size={32} color={theme.colors.textMuted} />
                         </View>
@@ -150,7 +136,7 @@ export default function App() {
                         <Text style={styles.emptySubtitle}>
                           Tasks without reminders appear here
                         </Text>
-                      </View>
+                      </Pressable>
                     }
                     contentContainerStyle={[
                       styles.listContent,
@@ -173,7 +159,7 @@ export default function App() {
                       />
                     )}
                     ListEmptyComponent={
-                      <View style={styles.emptyContainer}>
+                      <Pressable style={styles.emptyContainer} onPress={() => setExpandedTaskId(null)}>
                         <View style={styles.emptyIconContainer}>
                           <Feather name="bell" size={32} color={theme.colors.textMuted} />
                         </View>
@@ -181,7 +167,7 @@ export default function App() {
                         <Text style={styles.emptySubtitle}>
                           Tasks with upcoming reminders appear here
                         </Text>
-                      </View>
+                      </Pressable>
                     }
                     contentContainerStyle={[
                       styles.listContent,
@@ -190,67 +176,85 @@ export default function App() {
                     showsVerticalScrollIndicator={false}
                   />
                 )}
-              </View>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>
 
-        {/* Settings Modal */}
-        <Modal
-          visible={showSettings}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setShowSettings(false)}
-        >
-          <DatabaseConfigScreen onClose={handleCloseSettings} />
-        </Modal>
+        {/* Settings Panel */}
+        {showSettings && (
+          <View style={styles.slidePanel}>
+            <DatabaseConfigScreen onClose={handleCloseSettings} />
+          </View>
+        )}
 
-        {/* Overflow Menu Modal */}
-        <Modal
-          visible={showMenu}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowMenu(false)}
-        >
-          <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
-            <View style={styles.menuOverlay}>
-              <View style={styles.menuContainer}>
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => {
-                    setShowCompleted(!showCompleted);
-                    setShowMenu(false);
-                  }}
-                >
-                  <Text style={styles.menuText}>
-                    {showCompleted ? "Hide Completed" : "Show Completed"}
-                  </Text>
-                </TouchableOpacity>
+        {/* Menu Panel */}
+        {showMenu && (
+          <View style={styles.slidePanel}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowCompleted(!showCompleted);
+                setShowMenu(false);
+              }}
+            >
+              <Text style={styles.menuText}>
+                {showCompleted ? "Hide Completed" : "Show Completed"}
+              </Text>
+            </TouchableOpacity>
 
-                {completedCount > 0 && (
-                  <TouchableOpacity
-                    style={styles.menuItem}
-                    onPress={() => {
-                      setShowMenu(false);
-                      Alert.alert(
-                        "Delete Completed",
-                        "Are you sure you want to delete all completed tasks?",
-                        [
-                          { text: "Cancel", style: "cancel" },
-                          { text: "Delete", onPress: clearCompleted, style: "destructive" }
-                        ]
-                      );
-                    }}
-                  >
-                    <Text style={styles.menuText}>Delete Completed</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
+            {completedCount > 0 && (
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setShowMenu(false);
+                  Alert.alert(
+                    "Delete Completed",
+                    "Are you sure you want to delete all completed tasks?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Delete", onPress: clearCompleted }
+                    ]
+                  );
+                }}
+              >
+                <Text style={styles.menuText}>Delete Completed</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Bottom Bar */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              setShowSettings(!showSettings);
+              setShowMenu(false);
+            }}
+          >
+            <Feather name="settings" size={24} color={theme.colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.plusButton}
+            onPress={() => setShowAddTask(!showAddTask)}
+          >
+            <Feather name="plus" size={24} color={theme.colors.surface} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              setShowMenu(!showMenu);
+              setShowSettings(false);
+            }}
+          >
+            <Feather name="menu" size={24} color={theme.colors.textMuted} />
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
-    </SafeAreaProvider>
+    </SafeAreaProvider >
   );
 }
 
@@ -276,14 +280,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderLight,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: theme.spacing.md,
   },
   iconButton: {
     width: 32,
@@ -291,36 +287,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  menuOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  addTaskWrapper: {
+    marginBottom: theme.spacing.md,
   },
-  menuContainer: {
-    position: 'absolute',
-    top: 60, // approximate header height + spacing
-    right: theme.spacing.lg,
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
+  },
+  plusButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.textMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slidePanel: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.sm,
-    // Shadow
-    ...Platform.select({
-      web: {
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.5)',
-      },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.5,
-        shadowRadius: 12,
-        elevation: 8,
-      },
-    }),
-    minWidth: 180,
-    zIndex: 1000,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
   },
   menuItem: {
     paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
   },
   menuText: {
     fontSize: theme.fontSize.md,
