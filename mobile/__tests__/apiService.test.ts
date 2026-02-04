@@ -1,5 +1,4 @@
-import { ApiService } from '../services/apiService';
-import { DatabaseConfig } from '../types/DatabaseConfig';
+import { ApiService, DatabaseConfig } from '@mytasks/core';
 
 // Mock global fetch
 global.fetch = jest.fn();

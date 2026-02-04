@@ -29,8 +29,10 @@ const mockApiService = {
     deleteCompletedTasks: jest.fn().mockResolvedValue(undefined),
 };
 
-jest.mock('../services/apiService', () => ({
+jest.mock('@mytasks/core', () => ({
     ApiService: jest.fn().mockImplementation(() => mockApiService),
+    Task: {},
+    DatabaseConfig: {},
 }));
 
 describe('Backend SRS Requirements (via useTasks)', () => {

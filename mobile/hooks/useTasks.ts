@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task } from '../types/Task';
-import { ApiService } from '../services/apiService';
+import { Task, ApiService, DatabaseConfig } from '@mytasks/core';
 import { getDatabaseConfig } from '../services/databaseConfigService';
-import { DatabaseConfig } from '../types/DatabaseConfig';
 
 export function useTasks() {
     const [tasks, setTasks] = useState<Task[]>([]);

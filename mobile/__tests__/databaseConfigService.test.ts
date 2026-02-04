@@ -4,7 +4,7 @@ import {
     getDatabaseConfig,
     clearDatabaseConfig,
 } from '../services/databaseConfigService';
-import { DatabaseConfig } from '../types/DatabaseConfig';
+import { DatabaseConfig } from '@mytasks/core';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () =>
