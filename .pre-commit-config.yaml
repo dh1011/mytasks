@@ -8,28 +8,28 @@ repos:
     hooks:
       - id: lint
         name: Lint
-        entry: cd mobile && npx eslint . --ext .ts,.tsx --max-warnings 0
+        entry: npm run lint
         language: system
         files: \.(js|jsx|ts|tsx)$
         pass_filenames: false
 
       - id: test
         name: Test
-        entry: cd mobile && npm run test
+        entry: npm run test:unit
         language: system
         files: \.(js|jsx|ts|tsx)$
         pass_filenames: false
 
       - id: type-check
         name: Type Check
-        entry: cd mobile && npx tsc --noEmit
+        entry: npx tsc --noEmit
         language: system
         files: \.(ts|tsx)$
         pass_filenames: false
 
       - id: security-audit
         name: Security Audit
-        entry: bash -c 'npm audit --audit-level=high && cd mobile && npm audit --audit-level=high'
+        entry: npm audit --audit-level=high
         language: system
-        files: (^|mobile/)package-lock\.json$
+        files: package-lock\.json$
         pass_filenames: false
