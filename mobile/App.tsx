@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Feather } from '@expo/vector-icons';
 import {
   View,
@@ -27,6 +27,11 @@ import { TaskItem } from './components/TaskItem';
 import { DatabaseConfigScreen } from './components/DatabaseConfigScreen';
 import { theme } from './styles/theme';
 
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
+
 export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -47,6 +52,13 @@ export default function App() {
   } = useTasks();
 
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+
+  // Hide splash screen once layout happens
+  const onLayoutRootView = useCallback(async () => {
+    if (!isLoading) {
+      await SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
 
   const handleCloseSettings = () => {
     setShowSettings(false);
@@ -72,7 +84,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} onLayout={onLayoutRootView}>
         <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
         <KeyboardAvoidingView
           style={styles.keyboardView}
