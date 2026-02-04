@@ -4,7 +4,7 @@ import {
     getDatabaseConfig,
     clearDatabaseConfig,
 } from '../services/databaseConfigService';
-import { DatabaseConfig } from '../types/DatabaseConfig';
+import { DatabaseConfig } from '@mytasks/core';
 
 export function useDatabaseConfig() {
     const [config, setConfig] = useState<DatabaseConfig | null>(null);

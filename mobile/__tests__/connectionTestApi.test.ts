@@ -1,5 +1,4 @@
-import { testDatabaseConnection } from '../services/connectionTestApi';
-import { DatabaseConfig } from '../types/DatabaseConfig';
+import { testDatabaseConnection, DatabaseConfig } from '@mytasks/core';
 
 // Mock global fetch
 const mockFetch = jest.fn();

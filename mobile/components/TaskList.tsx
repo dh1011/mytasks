@@ -1,7 +1,7 @@
 import React from 'react';
 import { Feather } from '@expo/vector-icons';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { Task } from '../types/Task';
+import { Task } from '@mytasks/core';
 import { TaskItem } from './TaskItem';
 import { theme } from '../styles/theme';
 

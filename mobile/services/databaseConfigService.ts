@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DatabaseConfig } from '../types/DatabaseConfig';
+import { DatabaseConfig } from '@mytasks/core';
 
 const DB_CONFIG_KEY = '@mytasks:db_config';
 

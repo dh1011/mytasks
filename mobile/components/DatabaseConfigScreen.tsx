@@ -10,9 +10,8 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { theme } from '../styles/theme';
-import { DatabaseConfig } from '../types/DatabaseConfig'; // Keep usage of types
+import { DatabaseConfig, testDatabaseConnection } from '@mytasks/core';
 import { useDatabaseConfig } from '../hooks/useDatabaseConfig';
-import { testDatabaseConnection } from '../services/connectionTestApi';
 
 interface Props {
     onClose: () => void;

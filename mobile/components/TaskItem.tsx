@@ -11,7 +11,7 @@ import {
     Pressable,
     TextInput
 } from 'react-native';
-import { Task } from '../types/Task';
+import { Task } from '@mytasks/core';
 import { theme } from '../styles/theme';
 
 interface TaskItemProps {
