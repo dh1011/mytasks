@@ -29,7 +29,7 @@ repos:
 
       - id: security-audit
         name: Security Audit
-        entry: cd mobile && npm audit --audit-level=high
+        entry: bash -c 'npm audit --audit-level=high && cd mobile && npm audit --audit-level=high'
         language: system
-        files: mobile/package-lock\.json$
+        files: (^|mobile/)package-lock\.json$
         pass_filenames: false
