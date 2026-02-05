@@ -3,7 +3,7 @@ export interface Task {
   title: string;
   completed: boolean;
   createdAt: Date;
-  reminderAt?: Date;
+  reminderAt?: Date | null;
   repeat?: 'daily' | 'weekly' | 'monthly' | 'none';
   notificationId?: string;
 }

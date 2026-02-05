@@ -124,7 +124,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
         // Logic to clear reminder
         // Note: We might need a way to cancel the scheduled notification if we had the ID.
         // For now, we update DB.
-        onUpdate(task.id, { reminderAt: undefined, repeat: 'none' });
+        onUpdate(task.id, { reminderAt: null, repeat: 'none' });
         setShowReminderModal(false);
     };
 
