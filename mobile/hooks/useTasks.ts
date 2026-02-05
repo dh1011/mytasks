@@ -5,15 +5,20 @@ import { getDatabaseConfig } from '../services/databaseConfigService';
 export function useTasks() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [config, setConfig] = useState<DatabaseConfig | null>(null);
 
     // Load config and tasks on mount
     useEffect(() => {
-        loadData();
+        loadData(true);
     }, []);
 
-    const loadData = async () => {
-        setIsLoading(true);
+    const loadData = async (isInitialLoad = false) => {
+        if (isInitialLoad) {
+            setIsLoading(true);
+        } else {
+            setIsRefreshing(true);
+        }
         try {
             const dbConfig = await getDatabaseConfig();
             setConfig(dbConfig);
@@ -29,7 +34,11 @@ export function useTasks() {
             console.error('Error loading data:', error);
             setTasks([]);
         } finally {
-            setIsLoading(false);
+            if (isInitialLoad) {
+                setIsLoading(false);
+            } else {
+                setIsRefreshing(false);
+            }
         }
     };
 
@@ -137,11 +146,12 @@ export function useTasks() {
         inboxTasks,
         reminderTasks,
         isLoading,
+        isRefreshing,
         addTask,
         updateTask,
         toggleTask,
         deleteTask,
         clearCompleted,
-        refresh: loadData, // Expose refresh to allow app to reload on config change
+        refresh: () => loadData(false), // Refresh without showing full loading screen
     };
 }
