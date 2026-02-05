@@ -3,11 +3,13 @@
     "private": true,
     "workspaces": [
         "packages/*",
-        "mobile"
+        "mobile",
+        "web"
     ],
     "scripts": {
         "test": "npm run test:unit",
         "test:unit": "npm run test:unit --workspace=@mytasks/mobile --if-present",
-        "lint": "npm run lint --workspace=@mytasks/mobile --if-present"
+        "lint": "npm run lint --workspace=@mytasks/mobile --if-present",
+        "web:dev": "npm run dev --workspace=web"
     }
 }

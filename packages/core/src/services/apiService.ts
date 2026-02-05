@@ -1,5 +1,5 @@
-import { DatabaseConfig } from '../types/DatabaseConfig';
-import { Task } from '../types/Task';
+import type { DatabaseConfig } from '../types/DatabaseConfig';
+import type { Task } from '../types/Task';
 
 interface TaskRow {
     id: string;

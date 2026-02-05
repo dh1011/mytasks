@@ -1,4 +1,4 @@
-import { DatabaseConfig } from '../types/DatabaseConfig';
+import type { DatabaseConfig } from '../types/DatabaseConfig';
 import { ApiService } from './apiService';
 
 export interface ConnectionTestResult {
