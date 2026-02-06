@@ -20,11 +20,28 @@ repos:
         files: \.(js|jsx|ts|tsx)$
         pass_filenames: false
 
-      - id: type-check
-        name: Type Check
-        entry: npx tsc --noEmit
+      - id: type-check-web
+        name: Type Check (Web)
+        entry: bash -c 'cd web && npx tsc --noEmit'
         language: system
-        files: \.(ts|tsx)$
+        files: ^web/.*\.(ts|tsx)$
+        exclude: \.(test|spec)\.(ts|tsx)$
+        pass_filenames: false
+
+      - id: type-check-mobile
+        name: Type Check (Mobile)
+        entry: bash -c 'cd mobile && npx tsc --noEmit'
+        language: system
+        files: ^mobile/.*\.(ts|tsx)$
+        exclude: (__tests__|\.test\.|\.spec\.)
+        pass_filenames: false
+
+      - id: type-check-core
+        name: Type Check (Core)
+        entry: bash -c 'cd packages/core && npx tsc --noEmit'
+        language: system
+        files: ^packages/core/.*\.(ts|tsx)$
+        exclude: (__tests__|\.test\.|\.spec\.)
         pass_filenames: false
 
       - id: security-audit
