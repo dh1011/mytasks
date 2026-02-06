@@ -33,3 +33,10 @@ repos:
         language: system
         files: package-lock\.json$
         pass_filenames: false
+
+      - id: docker-web-test
+        name: Docker Web Build & Test
+        entry: bash -c 'cd web && bash test-docker.sh'
+        language: system
+        files: ^web/
+        pass_filenames: false
