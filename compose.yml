@@ -28,5 +28,15 @@ services:
     depends_on:
       - postgres
 
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    container_name: mytasks-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgrest
+
 volumes:
   postgres_data:
