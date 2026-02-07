@@ -5,17 +5,7 @@ import { ApiService } from '@mytasks/core';
 export function useTasks(config: DatabaseConfig | null) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        if (config?.apiUrl && config?.anonKey) {
-            loadTasks(true);
-        } else {
-            setTasks([]);
-            setIsLoading(false);
-        }
-    }, [config]);
-
-    const loadTasks = async (isInitialLoad = false) => {
+    const loadTasks = useCallback(async (isInitialLoad = false) => {
         if (!config?.apiUrl || !config?.anonKey) return;
 
         if (isInitialLoad) {
@@ -31,7 +21,19 @@ export function useTasks(config: DatabaseConfig | null) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [config]);
+
+
+    useEffect(() => {
+        if (config?.apiUrl && config?.anonKey) {
+            loadTasks(true);
+        } else {
+            setTasks([]);
+            setIsLoading(false);
+        }
+    }, [config, loadTasks]);
+
+
 
     const addTask = useCallback(async (title: string) => {
         if (!config?.apiUrl || !config?.anonKey) {

@@ -22,8 +22,8 @@ COPY web/public ./public
 COPY web/index.html ./
 COPY web/tsconfig*.json ./
 COPY web/vite.config.ts ./
-COPY web/tailwind.config.js ./
-COPY web/postcss.config.js ./
+COPY web/tailwind.config.cjs ./
+COPY web/postcss.config.cjs ./
 
 # Build the application
 RUN npm run build
