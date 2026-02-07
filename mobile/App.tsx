@@ -94,7 +94,10 @@ export default function App() {
           <View style={styles.contentContainer}>
             {showAddTask && (
               <View style={styles.addTaskWrapper}>
-                <AddTaskForm onAdd={addTask} />
+                <AddTaskForm
+                  onAdd={addTask}
+                  onClose={() => setShowAddTask(false)}
+                />
               </View>
             )}
 

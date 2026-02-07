@@ -11,9 +11,10 @@ import { theme } from '../styles/theme';
 
 interface AddTaskFormProps {
     onAdd: (title: string) => void;
+    onClose: () => void;
 }
 
-export function AddTaskForm({ onAdd }: AddTaskFormProps) {
+export function AddTaskForm({ onAdd, onClose }: AddTaskFormProps) {
     const [title, setTitle] = useState('');
 
     const handleSubmit = () => {
@@ -34,6 +35,8 @@ export function AddTaskForm({ onAdd }: AddTaskFormProps) {
                 onChangeText={setTitle}
                 onSubmitEditing={handleSubmit}
                 returnKeyType="done"
+                autoFocus={true}
+                onBlur={onClose}
             />
             <TouchableOpacity
                 style={[styles.button, !title.trim() && styles.buttonDisabled]}
