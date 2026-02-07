@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Check, Bell, Trash2 } from 'lucide-react';
 import type { Task } from '@mytasks/core';
 import { ReminderModal } from './ReminderModal';
@@ -19,9 +19,12 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
     const [justToggled, setJustToggled] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    useEffect(() => {
+    const [prevTaskTitle, setPrevTaskTitle] = useState(task.title);
+
+    if (task.title !== prevTaskTitle) {
+        setPrevTaskTitle(task.title);
         setTempTitle(task.title);
-    }, [task.title]);
+    }
 
     const handleToggle = (e: React.MouseEvent) => {
         e.stopPropagation();

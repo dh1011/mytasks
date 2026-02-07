@@ -34,7 +34,7 @@ export function DatabaseConfigPanel({ config, onSave, onClose }: DatabaseConfigP
                 success: result.success,
                 message: result.success ? 'Connection successful!' : result.error || 'Connection failed',
             });
-        } catch (error) {
+        } catch {
             setTestResult({
                 success: false,
                 message: 'Connection test failed',
