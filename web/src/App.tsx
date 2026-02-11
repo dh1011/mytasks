@@ -174,11 +174,6 @@ export default function App() {
                 onClick={() => setActiveTab('inbox')}
               >
                 <span>Inbox</span>
-                {inboxTasks.length > 0 && (
-                  <span className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                    {inboxTasks.length}
-                  </span>
-                )}
               </button>
               <button
                 ref={(el) => { if (el) tabRefs.current.set('reminders', el); }}
@@ -189,11 +184,6 @@ export default function App() {
                 onClick={() => setActiveTab('reminders')}
               >
                 <span>Reminders</span>
-                {reminderTasks.length > 0 && (
-                  <span className="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                    {reminderTasks.length}
-                  </span>
-                )}
               </button>
             </div>
 
