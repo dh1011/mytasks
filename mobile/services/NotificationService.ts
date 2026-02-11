@@ -4,7 +4,6 @@ import { Platform } from 'react-native';
 // Configure notification handler
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
         shouldShowBanner: true,
@@ -39,7 +38,6 @@ export class NotificationService {
     }
 
     static async scheduleNotification(id: string, title: string, body: string, triggerDate: Date, repeat: 'daily' | 'weekly' | 'monthly' | 'none' = 'none') {
-
         let notificationTrigger: Notifications.NotificationTriggerInput;
 
         if (repeat === 'none') {
