@@ -8,6 +8,8 @@ WORKDIR /app
 # Copy package files for dependency resolution
 COPY web/package*.json ./web/
 COPY packages/core/package.json ./packages/core/
+COPY tsconfig.json ./
+
 
 # Install dependencies (including local @mytasks/core)
 WORKDIR /app/web

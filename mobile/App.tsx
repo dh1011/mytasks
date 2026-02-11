@@ -108,22 +108,12 @@ export default function App() {
                   onPress={() => setActiveTab('inbox')}
                 >
                   <Text style={[styles.tabText, activeTab === 'inbox' && styles.activeTabText]}>Inbox</Text>
-                  {inboxTasks.length > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{inboxTasks.length}</Text>
-                    </View>
-                  )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.tabButton, activeTab === 'reminders' && styles.activeTabButton]}
                   onPress={() => setActiveTab('reminders')}
                 >
                   <Text style={[styles.tabText, activeTab === 'reminders' && styles.activeTabText]}>Reminders</Text>
-                  {reminderTasks.length > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{reminderTasks.length}</Text>
-                    </View>
-                  )}
                 </TouchableOpacity>
               </View>
 
@@ -389,18 +379,7 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: theme.fontWeight.bold,
   },
-  badge: {
-    marginLeft: theme.spacing.xs,
-    backgroundColor: theme.colors.surfaceElevated,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  badgeText: {
-    fontSize: 10,
-    color: theme.colors.text,
-    fontWeight: theme.fontWeight.bold,
-  },
+
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
