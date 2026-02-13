@@ -35,6 +35,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
     };
 
     const hasReminder = task.reminderAt && new Date(task.reminderAt) > new Date();
+    const isOverdue = task.reminderAt && new Date(task.reminderAt) <= new Date();
 
     const formatReminder = (date: Date) => {
         const now = new Date();
@@ -135,7 +136,10 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
                     )}
 
                     {task.reminderAt && (
-                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                        <div className={cn(
+                            "flex items-center gap-1 mt-1 text-xs",
+                            isOverdue ? "text-destructive" : "text-muted-foreground"
+                        )}>
                             <Bell size={10} />
                             <span>{formatReminder(new Date(task.reminderAt))}</span>
                         </div>

@@ -14,6 +14,7 @@ export const theme = {
         borderLight: '#2C2C2E',
         success: '#30D158',
         danger: '#FF453A',
+        warning: '#FF9F0A',
         shadow: 'rgba(0, 0, 0, 0.4)',
         grid: 'rgba(255, 255, 255, 0.03)',
         gridLine: 'rgba(255, 255, 255, 0.06)',
