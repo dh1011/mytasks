@@ -43,6 +43,7 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
 
     // Check if task has a future reminder
     const hasReminder = task.reminderAt && new Date(task.reminderAt) > new Date();
+    const isOverdue = task.reminderAt && new Date(task.reminderAt) <= new Date();
 
     const formatReminder = (date: Date) => {
         const now = new Date();
@@ -201,8 +202,8 @@ export function TaskItem({ task, onToggle, onUpdate, onDelete, isExpanded, onExp
                         </Text>
                     )}
                     {task.reminderAt && !isExpanded && (
-                        <View style={styles.reminderIndicator}>
-                            <Text style={styles.reminderText}>
+                        <View style={[styles.reminderIndicator, isOverdue && styles.reminderOverdue]}>
+                            <Text style={[styles.reminderText, isOverdue && styles.reminderTextOverdue]}>
                                 {formatReminder(new Date(task.reminderAt))}
                             </Text>
                         </View>
@@ -588,5 +589,15 @@ const styles = StyleSheet.create({
         fontSize: theme.fontSize.xs,
         color: theme.colors.textMuted,
         fontWeight: theme.fontWeight.regular,
+    },
+    reminderOverdue: {
+        backgroundColor: theme.colors.warning + '20',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    reminderTextOverdue: {
+        color: theme.colors.warning,
+        fontWeight: theme.fontWeight.medium,
     },
 });
