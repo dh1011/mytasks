@@ -74,6 +74,47 @@ export class ApiService {
             repeat: row.repeat || 'none',
         }));
     }
+
+    private mapRow(row: TaskRow): Task {
+        return {
+            id: row.id,
+            title: row.title,
+            completed: row.completed,
+            createdAt: new Date(row.created_at),
+            reminderAt: row.reminder_at ? new Date(row.reminder_at) : undefined,
+            repeat: row.repeat || 'none',
+        };
+    }
+
+    async fetchInboxTasks(limit: number, offset: number): Promise<Task[]> {
+        const response = await fetch(
+            this.getUrl(`tasks?completed=eq.false&reminder_at=is.null&order=created_at.desc&limit=${limit}&offset=${offset}`),
+            { method: 'GET', headers: this.headers },
+        );
+        if (!response.ok) throw new Error(`Failed to fetch inbox tasks: ${response.statusText}`);
+        const data = await response.json();
+        return data.map((row: TaskRow) => this.mapRow(row));
+    }
+
+    async fetchReminderTasks(limit: number, offset: number): Promise<Task[]> {
+        const response = await fetch(
+            this.getUrl(`tasks?completed=eq.false&reminder_at=not.is.null&order=reminder_at.asc&limit=${limit}&offset=${offset}`),
+            { method: 'GET', headers: this.headers },
+        );
+        if (!response.ok) throw new Error(`Failed to fetch reminder tasks: ${response.statusText}`);
+        const data = await response.json();
+        return data.map((row: TaskRow) => this.mapRow(row));
+    }
+
+    async fetchCompletedTasks(limit: number, offset: number): Promise<Task[]> {
+        const response = await fetch(
+            this.getUrl(`tasks?completed=eq.true&order=created_at.desc&limit=${limit}&offset=${offset}`),
+            { method: 'GET', headers: this.headers },
+        );
+        if (!response.ok) throw new Error(`Failed to fetch completed tasks: ${response.statusText}`);
+        const data = await response.json();
+        return data.map((row: TaskRow) => this.mapRow(row));
+    }
     async createTask(title: string): Promise<Task> {
         const response = await fetch(this.getUrl('tasks'), {
             method: 'POST',

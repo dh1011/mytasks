@@ -48,7 +48,7 @@ jobs:
         run: npm run test:unit
 
       - name: TypeScript type check
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit -p web/tsconfig.app.json
 
   lint:
     name: Code Quality
@@ -70,4 +70,4 @@ jobs:
         run: npx eslint . --max-warnings 0
 
       - name: Check TypeScript
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit -p web/tsconfig.app.json
