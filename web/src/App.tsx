@@ -9,24 +9,30 @@ import { cn } from '@/lib/utils';
 
 export default function App() {
   const { config, saveConfig, isLoading: configLoading } = useDatabaseConfig();
+  const [showSettings, setShowSettings] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [activeTab, setActiveTab] = useState<'inbox' | 'reminders'>('inbox');
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+
   const {
     isLoading: tasksLoading,
+    isLoadingMore,
+    isLoadingCompleted,
+    hasMore,
+    hasMoreCompleted,
     addTask,
     updateTask,
     toggleTask,
     deleteTask,
     clearCompleted,
     refresh,
+    loadMore,
+    loadMoreCompleted,
     inboxTasks,
     reminderTasks,
     completedTasks,
-  } = useTasks(config);
-
-  const [showSettings, setShowSettings] = useState(false);
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [showCompleted, setShowCompleted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'reminders'>('inbox');
-  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  } = useTasks(config, activeTab, showCompleted);
 
   // Tab Indicator Logic
   const tabsContainerRef = useRef<HTMLDivElement>(null);
@@ -69,6 +75,43 @@ export default function App() {
     return () => window.removeEventListener("resize", updateIndicator);
   }, [updateIndicator]);
 
+  // Infinite scroll — sentinel for active tab tasks
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, loadMore]);
+
+  // Infinite scroll — sentinel for completed tasks
+  const completedSentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const sentinel = completedSentinelRef.current;
+    if (!sentinel || !showCompleted) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreCompleted && !isLoadingCompleted) {
+          loadMoreCompleted();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMoreCompleted, isLoadingCompleted, loadMoreCompleted, showCompleted]);
 
   const handleCloseSettings = () => {
     setShowSettings(false);
@@ -90,7 +133,6 @@ export default function App() {
   }
 
   const currentTasks = activeTab === 'inbox' ? inboxTasks : reminderTasks;
-  const displayTasks = [...currentTasks, ...(showCompleted ? completedTasks : [])];
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground" onClick={() => setExpandedTaskId(null)}>
@@ -192,7 +234,7 @@ export default function App() {
               className="flex-1 overflow-y-auto pb-24 scrollbar-hide"
               onClick={(e) => e.stopPropagation()}
             >
-              {displayTasks.length === 0 ? (
+              {currentTasks.length === 0 && !isLoadingMore ? (
                 <div className="flex flex-col items-center justify-center py-12 mt-12 text-muted-foreground/60">
                   <div className="mb-4 p-4 rounded-2xl bg-muted/30 border border-border/50">
                     {activeTab === 'inbox' ? (
@@ -212,7 +254,7 @@ export default function App() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-1">
-                  {displayTasks.map((task) => (
+                  {currentTasks.map((task) => (
                     <TaskItem
                       key={task.id}
                       task={task}
@@ -223,6 +265,41 @@ export default function App() {
                       onExpand={() => handleExpand(task.id)}
                     />
                   ))}
+
+                  {/* Sentinel for infinite scroll */}
+                  <div ref={sentinelRef} className="h-1" />
+
+                  {isLoadingMore && (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {/* Completed tasks section */}
+                  {showCompleted && completedTasks.length > 0 && (
+                    <>
+                      {completedTasks.map((task) => (
+                        <TaskItem
+                          key={task.id}
+                          task={task}
+                          onToggle={toggleTask}
+                          onUpdate={updateTask}
+                          onDelete={deleteTask}
+                          isExpanded={expandedTaskId === task.id}
+                          onExpand={() => handleExpand(task.id)}
+                        />
+                      ))}
+
+                      {/* Sentinel for completed tasks infinite scroll */}
+                      <div ref={completedSentinelRef} className="h-1" />
+
+                      {isLoadingCompleted && (
+                        <div className="flex justify-center py-4">
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
