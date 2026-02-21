@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Settings, Plus, Inbox, Bell, Loader2, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { TransitionGroup } from 'react-transition-group';
 import { useDatabaseConfig } from './hooks/useDatabaseConfig';
@@ -7,6 +7,7 @@ import { AddTaskForm } from './components/AddTaskForm';
 import { AnimatedTask } from './components/AnimatedTask';
 import { LogoIcon } from './components/LogoIcon';
 import { DatabaseConfigPanel } from './components/DatabaseConfigPanel';
+import { groupTasksByDate } from './lib/groupTasksByDate';
 import { cn } from '@/lib/utils';
 
 export default function App() {
@@ -125,6 +126,8 @@ export default function App() {
   };
 
   const isLoading = configLoading || tasksLoading;
+  const currentTasks = activeTab === 'inbox' ? inboxTasks : reminderTasks;
+  const reminderGroups = useMemo(() => groupTasksByDate(reminderTasks), [reminderTasks]);
 
   if (isLoading) {
     return (
@@ -133,8 +136,6 @@ export default function App() {
       </div>
     );
   }
-
-  const currentTasks = activeTab === 'inbox' ? inboxTasks : reminderTasks;
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground" onClick={() => setExpandedTaskId(null)}>
@@ -256,19 +257,49 @@ export default function App() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-1">
-                  <TransitionGroup component={null}>
-                    {currentTasks.map((task) => (
-                      <AnimatedTask
-                        key={task.id}
-                        task={task}
-                        onToggle={toggleTask}
-                        onUpdate={updateTask}
-                        onDelete={deleteTask}
-                        isExpanded={expandedTaskId === task.id}
-                        onExpand={() => handleExpand(task.id)}
-                      />
-                    ))}
-                  </TransitionGroup>
+                  {activeTab === 'reminders' ? (
+                    /* Grouped reminders by date */
+                    reminderGroups.map((group) => (
+                      <div key={group.label} className="mb-2">
+                        <div className={cn(
+                          "sticky top-0 z-10 flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider backdrop-blur-md bg-background/80 border-b border-border/40",
+                          group.label === 'Overdue' ? "text-destructive" : "text-muted-foreground"
+                        )}>
+                          {group.label === 'Overdue' && <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />}
+                          {group.label}
+                          <span className="ml-auto text-[10px] font-normal tabular-nums opacity-60">{group.tasks.length}</span>
+                        </div>
+                        <TransitionGroup component={null}>
+                          {group.tasks.map((task) => (
+                            <AnimatedTask
+                              key={task.id}
+                              task={task}
+                              onToggle={toggleTask}
+                              onUpdate={updateTask}
+                              onDelete={deleteTask}
+                              isExpanded={expandedTaskId === task.id}
+                              onExpand={() => handleExpand(task.id)}
+                            />
+                          ))}
+                        </TransitionGroup>
+                      </div>
+                    ))
+                  ) : (
+                    /* Flat inbox list */
+                    <TransitionGroup component={null}>
+                      {currentTasks.map((task) => (
+                        <AnimatedTask
+                          key={task.id}
+                          task={task}
+                          onToggle={toggleTask}
+                          onUpdate={updateTask}
+                          onDelete={deleteTask}
+                          isExpanded={expandedTaskId === task.id}
+                          onExpand={() => handleExpand(task.id)}
+                        />
+                      ))}
+                    </TransitionGroup>
+                  )}
 
                   {/* Sentinel for infinite scroll */}
                   <div ref={sentinelRef} className="h-1" />
