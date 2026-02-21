@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Settings, Plus, Inbox, Bell, Loader2, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { TransitionGroup } from 'react-transition-group';
 import { useDatabaseConfig } from './hooks/useDatabaseConfig';
 import { useTasks } from './hooks/useTasks';
 import { AddTaskForm } from './components/AddTaskForm';
-import { TaskItem } from './components/TaskItem';
+import { AnimatedTask } from './components/AnimatedTask';
+import { LogoIcon } from './components/LogoIcon';
 import { DatabaseConfigPanel } from './components/DatabaseConfigPanel';
 import { cn } from '@/lib/utils';
 
@@ -142,8 +144,8 @@ export default function App() {
           {/* Top Header - Unified for Mobile and Desktop */}
           <div className="flex items-center justify-between px-6 py-6 shrink-0">
             <div className="flex items-center gap-2">
-              <div className="relative w-8 h-8 flex items-center justify-center">
-                <img src="/favicon.png" alt="MyTasks Logo" className="w-full h-full object-contain" />
+              <div className="relative w-12 h-12 flex items-center justify-center">
+                <LogoIcon className="w-full h-full" />
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -254,17 +256,19 @@ export default function App() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-1">
-                  {currentTasks.map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      onToggle={toggleTask}
-                      onUpdate={updateTask}
-                      onDelete={deleteTask}
-                      isExpanded={expandedTaskId === task.id}
-                      onExpand={() => handleExpand(task.id)}
-                    />
-                  ))}
+                  <TransitionGroup component={null}>
+                    {currentTasks.map((task) => (
+                      <AnimatedTask
+                        key={task.id}
+                        task={task}
+                        onToggle={toggleTask}
+                        onUpdate={updateTask}
+                        onDelete={deleteTask}
+                        isExpanded={expandedTaskId === task.id}
+                        onExpand={() => handleExpand(task.id)}
+                      />
+                    ))}
+                  </TransitionGroup>
 
                   {/* Sentinel for infinite scroll */}
                   <div ref={sentinelRef} className="h-1" />
@@ -278,17 +282,19 @@ export default function App() {
                   {/* Completed tasks section */}
                   {showCompleted && completedTasks.length > 0 && (
                     <>
-                      {completedTasks.map((task) => (
-                        <TaskItem
-                          key={task.id}
-                          task={task}
-                          onToggle={toggleTask}
-                          onUpdate={updateTask}
-                          onDelete={deleteTask}
-                          isExpanded={expandedTaskId === task.id}
-                          onExpand={() => handleExpand(task.id)}
-                        />
-                      ))}
+                      <TransitionGroup component={null}>
+                        {completedTasks.map((task) => (
+                          <AnimatedTask
+                            key={task.id}
+                            task={task}
+                            onToggle={toggleTask}
+                            onUpdate={updateTask}
+                            onDelete={deleteTask}
+                            isExpanded={expandedTaskId === task.id}
+                            onExpand={() => handleExpand(task.id)}
+                          />
+                        ))}
+                      </TransitionGroup>
 
                       {/* Sentinel for completed tasks infinite scroll */}
                       <div ref={completedSentinelRef} className="h-1" />

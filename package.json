@@ -12,5 +12,9 @@
         "lint": "npm run lint --workspace=@mytasks/mobile --if-present",
         "web:dev": "npm run dev --workspace=web",
         "web:docker:test": "cd web && bash test-docker.sh"
+    },
+    "overrides": {
+        "minimatch": "^10.2.1",
+        "tar": "^7.5.8"
     }
 }

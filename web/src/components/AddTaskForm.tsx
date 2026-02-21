@@ -30,7 +30,10 @@ export function AddTaskForm({ onAdd }: AddTaskFormProps) {
                 <input
                     ref={inputRef}
                     type="text"
-                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all duration-200 focus:border-accent focus:ring-2 focus:ring-accent/20"
+                    className={cn(
+                        "w-full rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all duration-200 focus:border-accent focus:ring-2 focus:ring-accent/20",
+                        isSubmitting && "animate-input-flash"
+                    )}
                     placeholder="Add a new task..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
